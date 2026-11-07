@@ -1,22 +1,25 @@
 //@version=6
-// Retest Lab 0.2.0 — independent educational prototype, MIT licensed.
+// Retest Lab 0.3.0 — independent educational prototype, MIT licensed.
 // NOT Auction Retest Pro, NOT a broker bot, NOT a profitability claim.
-indicator("Retest Lab — Displacement & Retest v0.2 [Prototype]", overlay=true, max_labels_count=300)
+indicator("Retest Lab — Displacement & Retest v0.3 [Prototype]", overlay=true, max_labels_count=300)
 
 string G1 = "Detection"
 int lookback = input.int(20, "Prior-range lookback", minval=2, maxval=500, group=G1)
 int atrLen = input.int(14, "ATR length", minval=2, group=G1)
 float bodyMult = input.float(0.8, "Minimum body / prior ATR", minval=0.1, step=0.1, group=G1)
 float edge = input.float(0.25, "Close distance from candle edge (fraction)", minval=0.01, maxval=0.49, step=0.01, group=G1)
+float minBreakAtr = input.float(0.0, "Minimum breakout distance / prior ATR", minval=0, step=0.1, group=G1)
 bool longs = input.bool(true, "Enable long setups", group=G1)
 bool shorts = input.bool(true, "Enable short setups", group=G1)
 string GF = "Optional breakout filters"
 bool useEma = input.bool(false, "Filter by EMA direction", group=GF)
 int emaLen = input.int(50, "EMA length", minval=2, group=GF)
+bool useVwap = input.bool(false, "Filter by session VWAP direction", group=GF)
 bool useVolume = input.bool(false, "Filter by relative volume", group=GF)
 int volLen = input.int(20, "Prior-volume average length", minval=2, group=GF)
 float volMult = input.float(1.0, "Minimum volume / prior average", minval=0.1, step=0.1, group=GF)
 string G2 = "Setup & risk geometry"
+bool confirmRetest = input.bool(false, "Require retest close on breakout side", group=G2)
 int expiry = input.int(10, "Retest validity (subsequent bars)", minval=1, group=G2)
 float stopBuffer = input.float(0.1, "Stop buffer / prior ATR", minval=0, step=0.05, group=G2)
 float minRisk = input.float(0.25, "Minimum entry-stop / prior ATR", minval=0.01, group=G2)
@@ -33,7 +36,10 @@ string sessionHours = input.session("0700-1700", "Session hours", group=G3)
 string tz = input.string("Etc/UTC", "Session and daily-reset IANA timezone", group=G3)
 string G4 = "Display"
 bool showDashboard = input.bool(true, "Show dashboard", group=G4)
+bool showVwap = input.bool(false, "Show session VWAP", group=G4)
 bool showEma = input.bool(false, "Show EMA", group=G4)
+bool showLevels = input.bool(true, "Show setup levels", group=G4)
+bool showMarkers = input.bool(true, "Show event markers", group=G4)
 bool showBackground = input.bool(true, "Highlight pending setup", group=G4)
 if barstate.isfirst and (minRisk > maxRisk or not (r1 < r2 and r2 < r3 and r3 < r4))
     runtime.error("Require min risk <= max risk and T1 < T2 < T3 < T4.")
@@ -43,6 +49,8 @@ float priorHigh = ta.highest(high[1], lookback)
 float priorLow = ta.lowest(low[1], lookback)
 float atrPrev = ta.atr(atrLen)[1]
 float ema = ta.ema(close, emaLen)
+// Built-in VWAP uses TradingView’s session anchor and available feed volume.
+float vwapValue = ta.vwap(hlc3)
 float priorVolAvg = ta.sma(volume, volLen)[1]
 bool volumeOk = not useVolume or (not na(volume) and not na(priorVolAvg) and priorVolAvg > 0 and volume >= volMult * priorVolAvg)
 float candleRange = high - low
@@ -58,6 +66,7 @@ var int armedBar = na
 var int lastEnd = na
 var int lastDay = na
 var int fillsToday = 0
+var string lastEvent = "—"
 var float entry = na
 var float stop = na
 var float risk = na
@@ -69,6 +78,7 @@ bool armShort = false
 bool filled = false
 bool stopped = false
 bool cancelled = false
+string cancelReason = ""
 bool tp1 = false
 bool tp2 = false
 bool tp3 = false
@@ -85,11 +95,12 @@ if barstate.isconfirmed
         bool invalid = direction == 1 ? low <= stop : high >= stop
         // On an invalidating pending bar, cancel rather than infer a fill.
         if newDay or not inSession or bar_index - armedBar > expiry or invalid
+            cancelReason := newDay ? "day_rollover" : not inSession ? "outside_session" : bar_index - armedBar > expiry ? "expired" : "stop_before_fill"
             state := 0
             lastEnd := bar_index
             cancelled := true
             array.push(events, "cancelled")
-        else if bar_index > armedBar and low <= entry and high >= entry
+        else if bar_index > armedBar and low <= entry and high >= entry and (not confirmRetest or (direction == 1 ? close >= entry : close <= entry))
             state := 2
             fillsToday += 1
             filled := true
@@ -124,8 +135,8 @@ if barstate.isconfirmed
                 lastEnd := bar_index
     bool cooled = na(lastEnd) or bar_index - lastEnd > cooldown
     if idleAtStart and state == 0 and ready and inSession and fillsToday < cap and cooled and candleRange > 0
-        bool bull = longs and volumeOk and (not useEma or (not na(ema) and close > ema)) and close > priorHigh and close > open and body >= bodyMult * atrPrev and (high - close) / candleRange <= edge
-        bool bear = shorts and volumeOk and (not useEma or (not na(ema) and close < ema)) and close < priorLow and close < open and body >= bodyMult * atrPrev and (close - low) / candleRange <= edge
+        bool bull = longs and volumeOk and (not useVwap or (not na(vwapValue) and close > vwapValue)) and (not useEma or (not na(ema) and close > ema)) and close > priorHigh and close - priorHigh >= minBreakAtr * atrPrev and close > open and body >= bodyMult * atrPrev and (high - close) / candleRange <= edge
+        bool bear = shorts and volumeOk and (not useVwap or (not na(vwapValue) and close < vwapValue)) and (not useEma or (not na(ema) and close < ema)) and close < priorLow and priorLow - close >= minBreakAtr * atrPrev and close < open and body >= bodyMult * atrPrev and (close - low) / candleRange <= edge
         if bull or bear
             int d = bull ? 1 : -1
             float e = math.round_to_mintick(d == 1 ? priorHigh : priorLow)
@@ -152,24 +163,27 @@ if barstate.isconfirmed
                 armShort := d == -1
                 array.push(events, d == 1 ? "armed_long" : "armed_short")
     if array.size(events) > 0
+        lastEvent := cancelled ? "cancel: " + cancelReason : array.join(events, ", ")
         string ev = '["' + array.join(events, '","') + '"]'
-        string msg = '{"schema":"retest_lab.v2","symbol":"' + syminfo.tickerid + '","timeframe":"' + timeframe.period + '","bar_close_ms":' + str.tostring(time_close) + ',"direction":' + str.tostring(direction) + ',"events":' + ev + ',"entry":' + str.tostring(entry, format.mintick) + ',"stop":' + str.tostring(stop, format.mintick) + ',"t1":' + str.tostring(array.get(targets, 0), format.mintick) + ',"t2":' + str.tostring(array.get(targets, 1), format.mintick) + ',"t3":' + str.tostring(array.get(targets, 2), format.mintick) + ',"t4":' + str.tostring(array.get(targets, 3), format.mintick) + '}'
+        string msg = '{"schema":"retest_lab.v3","symbol":"' + syminfo.tickerid + '","timeframe":"' + timeframe.period + '","bar_close_ms":' + str.tostring(time_close) + ',"direction":' + str.tostring(direction) + ',"events":' + ev + ',"cancel_reason":' + (cancelled ? '"' + cancelReason + '"' : 'null') + ',"entry":' + str.tostring(entry, format.mintick) + ',"stop":' + str.tostring(stop, format.mintick) + ',"t1":' + str.tostring(array.get(targets, 0), format.mintick) + ',"t2":' + str.tostring(array.get(targets, 1), format.mintick) + ',"t3":' + str.tostring(array.get(targets, 2), format.mintick) + ',"t4":' + str.tostring(array.get(targets, 3), format.mintick) + '}'
         alert(msg, alert.freq_once_per_bar_close)
 
 bool visible = state != 0 or wasVisible
+plot(showVwap ? vwapValue : na, "Session VWAP context", color=color.new(color.purple, 10))
 plot(showEma ? ema : na, "EMA context", color=color.new(color.orange, 10))
-plot(visible ? entry : na, "Entry", color=color.blue, linewidth=2, style=plot.style_linebr)
-plot(visible ? stop : na, "Stop", color=color.red, style=plot.style_linebr)
-plot(visible ? array.get(targets, 0) : na, "T1", color=color.new(color.green, 45), style=plot.style_linebr)
-plot(visible ? array.get(targets, 1) : na, "T2", color=color.new(color.green, 30), style=plot.style_linebr)
-plot(visible ? array.get(targets, 2) : na, "T3", color=color.new(color.green, 15), style=plot.style_linebr)
-plot(visible ? array.get(targets, 3) : na, "T4", color=color.green, linewidth=2, style=plot.style_linebr)
-plotshape(armLong, title="Armed long", style=shape.triangleup, location=location.belowbar, color=color.blue, size=size.tiny, text="ARM")
-plotshape(armShort, title="Armed short", style=shape.triangledown, location=location.abovebar, color=color.orange, size=size.tiny, text="ARM")
-plotshape(filled, title="Modeled fill", style=shape.circle, location=location.belowbar, color=color.green, size=size.tiny, text="F")
-plotshape(stopped, title="Stop", style=shape.xcross, location=location.abovebar, color=color.red, size=size.tiny)
+plot(showLevels and visible ? entry : na, "Entry", color=color.blue, linewidth=2, style=plot.style_linebr)
+plot(showLevels and visible ? stop : na, "Stop", color=color.red, style=plot.style_linebr)
+plot(showLevels and visible ? array.get(targets, 0) : na, "T1", color=color.new(color.green, 45), style=plot.style_linebr)
+plot(showLevels and visible ? array.get(targets, 1) : na, "T2", color=color.new(color.green, 30), style=plot.style_linebr)
+plot(showLevels and visible ? array.get(targets, 2) : na, "T3", color=color.new(color.green, 15), style=plot.style_linebr)
+plot(showLevels and visible ? array.get(targets, 3) : na, "T4", color=color.green, linewidth=2, style=plot.style_linebr)
+plotshape(showMarkers and armLong, title="Armed long", style=shape.triangleup, location=location.belowbar, color=color.blue, size=size.tiny, text="ARM")
+plotshape(showMarkers and armShort, title="Armed short", style=shape.triangledown, location=location.abovebar, color=color.orange, size=size.tiny, text="ARM")
+plotshape(showMarkers and filled, title="Modeled fill", style=shape.circle, location=location.belowbar, color=color.green, size=size.tiny, text="F")
+plotshape(showMarkers and stopped, title="Stop", style=shape.xcross, location=location.abovebar, color=color.red, size=size.tiny)
+plotshape(showMarkers and cancelled, title="Cancelled", style=shape.xcross, location=location.belowbar, color=color.gray, size=size.tiny, text="X")
 bgcolor(showBackground and state == 1 ? color.new(color.blue, 94) : na)
-var table dashboard = table.new(position.top_right, 2, 6)
+var table dashboard = table.new(position.top_right, 2, 8)
 if barstate.islast and showDashboard
     table.cell(dashboard, 0, 0, "Retest Lab", bgcolor=color.new(color.blue, 80))
     table.cell(dashboard, 1, 0, "PROTOTYPE")
@@ -182,9 +196,13 @@ if barstate.islast and showDashboard
     table.cell(dashboard, 0, 4, "Retest bars left")
     table.cell(dashboard, 1, 4, state == 1 ? str.tostring(math.max(0, expiry - (bar_index - armedBar))) : "—")
     table.cell(dashboard, 0, 5, "Filters")
-    table.cell(dashboard, 1, 5, (useEma ? "EMA " : "") + (useVolume ? "VOL" : "") + (not useEma and not useVolume ? "OFF" : ""))
+    table.cell(dashboard, 1, 5, (useEma ? "EMA " : "") + (useVolume ? "VOL " : "") + (useVwap ? "VWAP" : "") + (not useEma and not useVolume and not useVwap ? "OFF" : ""))
+    table.cell(dashboard, 0, 6, "Retest confirmation")
+    table.cell(dashboard, 1, 6, confirmRetest ? "CLOSE" : "TOUCH")
+    table.cell(dashboard, 0, 7, "Last event")
+    table.cell(dashboard, 1, 7, lastEvent)
 else if barstate.islast
-    table.clear(dashboard, 0, 0, 1, 5)
+    table.clear(dashboard, 0, 0, 1, 7)
 alertcondition(armLong or armShort, "Setup armed", "Retest Lab: setup armed on {{ticker}} {{interval}}")
 alertcondition(filled, "Modeled fill", "Retest Lab: modeled fill; NOT a broker execution")
 alertcondition(stopped, "Stop touched", "Retest Lab: modeled stop touched")
@@ -193,3 +211,8 @@ alertcondition(tp1, "Target 1", "Retest Lab: T1 touched")
 alertcondition(tp2, "Target 2", "Retest Lab: T2 touched")
 alertcondition(tp3, "Target 3", "Retest Lab: T3 touched")
 alertcondition(tp4, "Target 4", "Retest Lab: T4 touched; modeled trade complete")
+
+alertcondition(armLong, "Long setup armed", "Retest Lab: long setup armed on {{ticker}} {{interval}}")
+alertcondition(armShort, "Short setup armed", "Retest Lab: short setup armed on {{ticker}} {{interval}}")
+alertcondition(filled and direction == 1, "Long modeled fill", "Retest Lab: long modeled fill; NOT a broker execution")
+alertcondition(filled and direction == -1, "Short modeled fill", "Retest Lab: short modeled fill; NOT a broker execution")
