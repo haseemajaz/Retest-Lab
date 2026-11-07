@@ -33,8 +33,25 @@ test_pending_invalidation_beats_fill (test_engine.LifecycleTests.test_pending_in
 test_session_cancels_pending (test_engine.LifecycleTests.test_session_cancels_pending) ... ok
 test_short_mirrors_long (test_engine.LifecycleTests.test_short_mirrors_long) ... ok
 test_unconfirmed_bar_no_state_change (test_engine.LifecycleTests.test_unconfirmed_bar_no_state_change) ... ok
+test_confirm_long_waits_and_then_fills (test_engine.V3FeatureTests.test_confirm_long_waits_and_then_fills) ... ok
+test_confirm_short_waits_and_then_fills (test_engine.V3FeatureTests.test_confirm_short_waits_and_then_fills) ... ok
+test_day_precedes_other_cancellations (test_engine.V3FeatureTests.test_day_precedes_other_cancellations) ... ok
+test_expiry_precedes_stop (test_engine.V3FeatureTests.test_expiry_precedes_stop) ... ok
+test_expiry_reason (test_engine.V3FeatureTests.test_expiry_reason) ... ok
+test_min_break_equality (test_engine.V3FeatureTests.test_min_break_equality) ... ok
+test_min_break_long_fail (test_engine.V3FeatureTests.test_min_break_long_fail) ... ok
+test_min_break_long_pass (test_engine.V3FeatureTests.test_min_break_long_pass) ... ok
+test_min_break_short_fail (test_engine.V3FeatureTests.test_min_break_short_fail) ... ok
+test_min_break_short_pass (test_engine.V3FeatureTests.test_min_break_short_pass) ... ok
+test_negative_break_rejected (test_engine.V3FeatureTests.test_negative_break_rejected) ... ok
+test_session_precedes_expiry_and_stop (test_engine.V3FeatureTests.test_session_precedes_expiry_and_stop) ... ok
+test_session_reason (test_engine.V3FeatureTests.test_session_reason) ... ok
+test_stop_before_confirmation (test_engine.V3FeatureTests.test_stop_before_confirmation) ... ok
+test_long_pass_fail_equal_and_missing (test_engine.VWAPTests.test_long_pass_fail_equal_and_missing) ... ok
+test_short_pass_fail_equal_and_missing (test_engine.VWAPTests.test_short_pass_fail_equal_and_missing) ... ok
+test_vwap_off_needs_no_input (test_engine.VWAPTests.test_vwap_off_needs_no_input) ... ok
 
 ----------------------------------------------------------------------
-Ran 35 tests in 0.002s
+Ran 52 tests in 0.002s
 
 OK
