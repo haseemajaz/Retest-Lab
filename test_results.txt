@@ -1,0 +1,40 @@
+test_close_edge_rejected (test_engine.DetectionTests.test_close_edge_rejected) ... ok
+test_direction_disabled (test_engine.DetectionTests.test_direction_disabled) ... ok
+test_long_geometry (test_engine.DetectionTests.test_long_geometry) ... ok
+test_no_break_rejected (test_engine.DetectionTests.test_no_break_rejected) ... ok
+test_short_geometry (test_engine.DetectionTests.test_short_geometry) ... ok
+test_targets_must_be_increasing (test_engine.DetectionTests.test_targets_must_be_increasing) ... ok
+test_tick_collapsed_targets_rejected (test_engine.DetectionTests.test_tick_collapsed_targets_rejected) ... ok
+test_weak_body_rejected (test_engine.DetectionTests.test_weak_body_rejected) ... ok
+test_wrong_side_stop_rejected (test_engine.DetectionTests.test_wrong_side_stop_rejected) ... ok
+test_zero_atr_rejected (test_engine.DetectionTests.test_zero_atr_rejected) ... ok
+test_ema_filter_pass_and_fail (test_engine.FilterTests.test_ema_filter_pass_and_fail) ... ok
+test_fill_bar_target_is_deferred (test_engine.FilterTests.test_fill_bar_target_is_deferred) ... ok
+test_filters_off_do_not_require_inputs (test_engine.FilterTests.test_filters_off_do_not_require_inputs) ... ok
+test_next_bar_stop_wins_after_ambiguous_fill (test_engine.FilterTests.test_next_bar_stop_wins_after_ambiguous_fill) ... ok
+test_volume_filter_missing_and_threshold (test_engine.FilterTests.test_volume_filter_missing_and_threshold) ... ok
+test_active_stop_beats_all_targets (test_engine.LifecycleTests.test_active_stop_beats_all_targets) ... ok
+test_active_survives_session_end (test_engine.LifecycleTests.test_active_survives_session_end) ... ok
+test_cap_blocks_new_setup (test_engine.LifecycleTests.test_cap_blocks_new_setup) ... ok
+test_cooldown_blocks_full_bars (test_engine.LifecycleTests.test_cooldown_blocks_full_bars) ... ok
+test_day_cancels_pending (test_engine.LifecycleTests.test_day_cancels_pending) ... ok
+test_day_resets_cap (test_engine.LifecycleTests.test_day_resets_cap) ... ok
+test_exact_touch_fills (test_engine.LifecycleTests.test_exact_touch_fills) ... ok
+test_expired_touch_cancels (test_engine.LifecycleTests.test_expired_touch_cancels) ... ok
+test_final_target_closes (test_engine.LifecycleTests.test_final_target_closes) ... ok
+test_gap_below_entry_not_a_fill (test_engine.LifecycleTests.test_gap_below_entry_not_a_fill) ... ok
+test_last_valid_bar_fills (test_engine.LifecycleTests.test_last_valid_bar_fills) ... ok
+test_multiple_targets_once (test_engine.LifecycleTests.test_multiple_targets_once) ... ok
+test_near_miss_does_not_fill (test_engine.LifecycleTests.test_near_miss_does_not_fill) ... ok
+test_no_breakout_bar_fill (test_engine.LifecycleTests.test_no_breakout_bar_fill) ... ok
+test_no_rearm_on_termination_bar (test_engine.LifecycleTests.test_no_rearm_on_termination_bar) ... ok
+test_outside_session_no_arm (test_engine.LifecycleTests.test_outside_session_no_arm) ... ok
+test_pending_invalidation_beats_fill (test_engine.LifecycleTests.test_pending_invalidation_beats_fill) ... ok
+test_session_cancels_pending (test_engine.LifecycleTests.test_session_cancels_pending) ... ok
+test_short_mirrors_long (test_engine.LifecycleTests.test_short_mirrors_long) ... ok
+test_unconfirmed_bar_no_state_change (test_engine.LifecycleTests.test_unconfirmed_bar_no_state_change) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.002s
+
+OK
