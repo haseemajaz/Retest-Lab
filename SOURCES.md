@@ -1,27 +1,12 @@
 # Sources and evidence boundary
-Reviewed 2026-10-16.
 
-1. https://www.youtube.com/watch?v=kputn6Wdads
-Title: How I Passed a Prop Firm Challenge in 24 Hours (Live Proof).
-Accessible: video description; page reports 19:34 duration. Not accessible: full video,
-audio, captions, chart settings, narration or trade-by-trade proof. Description claims
-Funding Pips challenge success and promotes Auction Retest Pro. Claims not audited.
-Do not treat the title as verified performance or infer timestamps from this package.
+Reviewed 2026-11-07.
 
-2. https://ritishlabs.com/auction-retest-pro
-Public product description: directional displacement/structure break, time-limited retest,
-confirmed-candle setup detection, entry/invalidation, four configurable R targets, alerts,
-cooldown and daily controls. Displayed targets: 0.6R, 1R, 1.5R, 2R.
-Invite-only access means source code and exact proprietary parameters were not supplied.
+1. https://www.youtube.com/watch?v=kputn6Wdads — public video transcript reviewed (automatically generated captions, not a visual/audio review; playback remained unavailable). Around 5:38–8:13 the speaker describes four targets, optional partial profit-taking, a dashed entry level, retest and an armed status table. Around 9:01–9:26 the automatic transcript sounds like “VWP,” likely VWAP, and discusses futures/data choice; the exact setting is unclear. At 16:16–17:02 the speaker describes proprietary direction methods and retest levels but does not disclose formulas. The creator's challenge, accuracy, profitability and prop-firm compliance claims are unverified; do not treat them as evidence about Retest Lab. Auto-caption errors may affect interpretation.
+2. https://ritishlabs.com/auction-retest-pro — public product description; private source and exact parameters unavailable.
+3. https://www.tradingview.com/support/solutions/43000502018-volume-weighted-average-price-vwap/ — VWAP and timeframe/anchor context.
+4. https://www.tradingview.com/pine-script-docs/concepts/bar-states/ — confirmed bars.
+5. https://www.tradingview.com/pine-script-docs/concepts/alerts/ — real-time alerts and snapshots.
+6. https://www.tradingview.com/pine-script-docs/concepts/repainting/ — chart recalculation and repainting limitations.
 
-3. https://www.tradingview.com/pine-script-docs/concepts/bar-states/
-Official Pine documentation for barstate.isconfirmed and historical/realtime bar behavior.
-
-4. https://www.tradingview.com/pine-script-docs/concepts/alerts/
-Official alert semantics: scripts emit events, users create running alerts; real-time events;
-running alerts use saved script/input snapshots.
-
-All breakout definitions, numeric thresholds other than the displayed target multiples,
-stop construction, exact-touch rule, event ordering, filters, default cooldown/cap and
-software architecture in Retest Lab are independently chosen implementation decisions.
-There is no verified win rate, audited challenge pass, performance backtest or firm-rule review.
+Retest Lab’s prior-range breakout, ATR distances, filters, stop, rounding, events and default controls are independent choices, not a reconstruction of proprietary rules. It has no partial exits, audited track record, broker connection or compliance guarantee.
