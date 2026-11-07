@@ -1,20 +1,13 @@
-# Validation record — v0.2.0
+# Validation record — v0.3.0
 
 ## Completed
-- 2026-11-07: `python -m unittest discover -s tests -v`: 35 synthetic tests pass; captured in `test_results.txt`.
-- 2026-11-07: Pine v6 source pasted into TradingView under user-authorized account, compiled and added to an AAPL daily chart. Historical arming markers and dashboard rendered; no visible compilation or runtime error on that chart.
-- 2026-11-07: Bar Replay on AAPL 1D advanced five bars, with the indicator visible and no visible runtime error. This smoke test did not verify all events, filter combinations, intrabar ordering, alerts or profitability.
-- The chart instance was moved to the price pane. No orders or broker actions were performed. A temporary default template indicator was replaced by the prototype.
+- 2026-11-07: 52 Python synthetic unit tests pass (`python -m unittest discover -s tests -v`); `test_results.txt` records the output. The Python reference takes prepared indicators rather than obtaining market data. These tests do not compile Pine, independently validate parity, or measure trading returns.
+- v0.2 compiled and displayed on an AAPL daily chart and a five-bar Bar Replay smoke test showed no visible runtime error. That was v0.2, NOT this release.
+- A v0.3 TradingView Add to chart attempt was blocked before a successful chart test: the Basic plan chart already contained the two permitted indicators. Create new layout also reported the one-layout plan limit. Existing chart indicators were not removed. Earlier saving v0.2 was blocked by the one-saved-script limit. v0.3 is not confirmed saved.
+- The video transcript was read on 2026-11-07; the video player did not load. Auto captions can mis-transcribe technical terms, and no visuals or trading records were independently verified.
 
-## Not completed / required before reliance
-- TradingView refused to save due to Basic account's one-saved-script limit. The prototype is NOT confirmed saved; unsaved chart/editor state can disappear.
-- No exhaustive Pine/Python parity checks; Python receives prepared indicator values. No replay assertion for all lifecycle paths or filter settings. No live alerts, automation, multi-symbol analysis, spread/commission tests, or statistical performance testing.
-- No complete video/captions review: YouTube player failed to play in this environment. No claim of replication of private code or actual settings.
-- Alerts occur only after bar close and cannot guarantee an actionable entry. OHLC cannot resolve intrabar order; no fill-bar targets are recorded even if the price may actually have hit them after entry.
-
-## Acceptance checklist
-1. Save or export existing scripts before freeing any account slot; then save this code as a new script.
-2. On standard time-based candles test longs/shorts, volume missing/zero, EMA equality, prior-volume warmup, sessions/day rollover, retest expiry, and cooldown/cap.
-3. Replay stop+target overlap, fill+target overlap, gap bars, target ordering and high/low bounds. Compare manually against reference engine on matching synthetic bars and inputs.
-4. Verify named and JSON alerts in a test environment; never connect them directly to order execution without independent safeguards.
-5. Forward paper-observe multiple instruments/timeframes; include spread, commissions and slippage in any separately built performance study.
+## Still required before reliance
+- Compile and add v0.3 on a standard candlestick chart once a slot is available, then replay long/short, minimum-distance and close-confirmation boundaries, filters including missing volume/VWAP, stop/target ties, expiry, day/session changes, cooldown/cap and ticks. Compare to Python with matched inputs and recorded bars.
+- Test real-time named and v3 JSON alerts separately, without broker routing; alerts do not fire on historical/replay bars. Check snapshots and cancel_reason.
+- Cross-market/timeframe paper observation, then independently designed out-of-sample research with commissions, spread, slippage and realistic order execution. No win-rate claim is validated. Never interpret indicator results as compliance with a prop firm's rules.
+- Fill-bar targets deliberately omitted; conservative stop-first ordering cannot identify actual intrabar sequence. Gap threshold events do not establish executable fills. No trailing stops, scale-outs, broker connection or account-level risk controls exist.
