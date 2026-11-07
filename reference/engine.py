@@ -30,12 +30,15 @@ class Config:
     tick: float = .01
     use_ema: bool = False
     use_volume: bool = False
+    use_vwap: bool = False
     vol_mult: float = 1.0
+    min_break_atr: float = 0.0
+    confirm_retest: bool = False
     longs: bool = True
     shorts: bool = True
     def __post_init__(self):
         assert 0 < self.edge < .5 and self.tick > 0 and self.body_mult > 0 and self.vol_mult > 0
-        assert 0 < self.min_risk <= self.max_risk and self.stop_buffer >= 0
+        assert 0 < self.min_risk <= self.max_risk and self.stop_buffer >= 0 and self.min_break_atr >= 0
         assert self.expiry >= 1 and self.cooldown >= 0 and self.cap >= 1
         assert len(self.targets) == 4 and 0 < self.targets[0]
         assert all(a < b for a, b in zip(self.targets, self.targets[1:]))
@@ -51,7 +54,7 @@ def rounded(x, tick):
     # Nearest tick, ties toward positive infinity, matching intended Pine rule.
     return round(floor(x / tick + .5 + 1e-10) * tick, 10)
 
-def detect(bar, prior_high, prior_low, prior_atr, cfg, ema=None, volume=None, prior_volume_avg=None):
+def detect(bar, prior_high, prior_low, prior_atr, cfg, ema=None, volume=None, prior_volume_avg=None, vwap=None):
     """Caller must supply fully warmed-up PREVIOUS-bar ATR and prior range."""
     if not bar.confirmed or prior_atr <= 0 or bar.high <= bar.low:
         return None
@@ -59,10 +62,10 @@ def detect(bar, prior_high, prior_low, prior_atr, cfg, ema=None, volume=None, pr
         return None
     span = bar.high - bar.low
     body = abs(bar.close - bar.open)
-    bull = (cfg.longs and (not cfg.use_ema or (ema is not None and bar.close > ema)) and bar.close > prior_high and bar.close > bar.open
+    bull = (cfg.longs and (not cfg.use_vwap or (vwap is not None and bar.close > vwap)) and (not cfg.use_ema or (ema is not None and bar.close > ema)) and bar.close > prior_high and bar.close - prior_high >= cfg.min_break_atr * prior_atr and bar.close > bar.open
             and body >= cfg.body_mult * prior_atr
             and (bar.high - bar.close) / span <= cfg.edge)
-    bear = (cfg.shorts and (not cfg.use_ema or (ema is not None and bar.close < ema)) and bar.close < prior_low and bar.close < bar.open
+    bear = (cfg.shorts and (not cfg.use_vwap or (vwap is not None and bar.close < vwap)) and (not cfg.use_ema or (ema is not None and bar.close < ema)) and bar.close < prior_low and prior_low - bar.close >= cfg.min_break_atr * prior_atr and bar.close < bar.open
             and body >= cfg.body_mult * prior_atr
             and (bar.close - bar.low) / span <= cfg.edge)
     if not (bull or bear):
@@ -91,6 +94,7 @@ class Engine:
     day: str | None = None
     fills_today: int = 0
     hit: set = field(default_factory=set)
+    last_cancel_reason: str | None = None
 
     def step(self, b: Bar, candidate: Setup | None = None):
         if not b.confirmed:
@@ -107,9 +111,10 @@ class Engine:
             s = self.setup
             invalid = b.low <= s.stop if s.direction == 1 else b.high >= s.stop
             if new_day or not b.in_session or b.index - self.armed_bar > self.cfg.expiry or invalid:
+                self.last_cancel_reason = ('day_rollover' if new_day else 'outside_session' if not b.in_session else 'expired' if b.index - self.armed_bar > self.cfg.expiry else 'stop_before_fill')
                 self.state, self.last_end = 'idle', b.index
                 events.append('cancelled')
-            elif b.index > self.armed_bar and b.low <= s.entry <= b.high:
+            elif b.index > self.armed_bar and b.low <= s.entry <= b.high and (not self.cfg.confirm_retest or (b.close >= s.entry if s.direction == 1 else b.close <= s.entry)):
                 self.state = 'active'
                 self.fills_today += 1
                 events.append('modeled_fill')
