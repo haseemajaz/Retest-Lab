@@ -104,4 +104,60 @@ class FilterTests(unittest.TestCase):
         e=Engine(); e.step(b(0),L); e.step(b(1,100,105))
         self.assertEqual(e.step(b(2,97,105)),['stop'])
 
-if __name__ == '__main__': unittest.main()
+
+class V3FeatureTests(unittest.TestCase):
+    long_bar = Bar(20,'d',99.5,102,99,101.8)
+    short_bar = Bar(20,'d',100.5,101,98,98.2)
+    def test_min_break_long_pass(self):
+        self.assertIsNotNone(detect(self.long_bar,100,95,2,Config(min_break_atr=.8)))
+    def test_min_break_long_fail(self):
+        self.assertIsNone(detect(self.long_bar,100,95,2,Config(min_break_atr=1)))
+    def test_min_break_short_pass(self):
+        self.assertIsNotNone(detect(self.short_bar,105,100,2,Config(min_break_atr=.8)))
+    def test_min_break_short_fail(self):
+        self.assertIsNone(detect(self.short_bar,105,100,2,Config(min_break_atr=1)))
+    def test_min_break_equality(self):
+        self.assertIsNotNone(detect(Bar(20,'d',99.5,102,99,102),100,95,2,Config(min_break_atr=1)))
+    def test_negative_break_rejected(self):
+        with self.assertRaises(AssertionError): Config(min_break_atr=-1)
+    def test_confirm_long_waits_and_then_fills(self):
+        e=Engine(Config(confirm_retest=True));e.step(b(0),L)
+        self.assertEqual(e.step(b(1,99,101,close=99.5)),[])
+        self.assertEqual(e.state,'armed');self.assertEqual(e.step(b(2,99,101,close=100)),['modeled_fill'])
+    def test_confirm_short_waits_and_then_fills(self):
+        e=Engine(Config(confirm_retest=True));e.step(b(0),S)
+        self.assertEqual(e.step(b(1,99,101,close=100.5)),[])
+        self.assertEqual(e.step(b(2,99,101,close=100)),['modeled_fill'])
+    def test_stop_before_confirmation(self):
+        e=Engine(Config(confirm_retest=True));e.step(b(0),L)
+        self.assertEqual(e.step(b(1,97,101,close=100.5)),['cancelled'])
+        self.assertEqual(e.last_cancel_reason,'stop_before_fill')
+    def test_expiry_reason(self):
+        e=Engine(Config(expiry=1));e.step(b(0),L);e.step(b(2))
+        self.assertEqual(e.last_cancel_reason,'expired')
+    def test_session_reason(self):
+        e=Engine();e.step(b(0),L);e.step(b(1,in_session=False))
+        self.assertEqual(e.last_cancel_reason,'outside_session')
+    def test_day_precedes_other_cancellations(self):
+        e=Engine(Config(expiry=1));e.step(b(0),L);e.step(b(3,97,101,day='2026-01-02',in_session=False))
+        self.assertEqual(e.last_cancel_reason,'day_rollover')
+    def test_session_precedes_expiry_and_stop(self):
+        e=Engine(Config(expiry=1));e.step(b(0),L);e.step(b(3,97,101,in_session=False))
+        self.assertEqual(e.last_cancel_reason,'outside_session')
+    def test_expiry_precedes_stop(self):
+        e=Engine(Config(expiry=1));e.step(b(0),L);e.step(b(2,97,101))
+        self.assertEqual(e.last_cancel_reason,'expired')
+
+class VWAPTests(unittest.TestCase):
+    def test_long_pass_fail_equal_and_missing(self):
+        bar=Bar(20,'d',99.5,102,99,101.8); c=Config(use_vwap=True)
+        self.assertIsNotNone(detect(bar,100,95,2,c,vwap=100))
+        for v in (102,101.8,None): self.assertIsNone(detect(bar,100,95,2,c,vwap=v))
+    def test_short_pass_fail_equal_and_missing(self):
+        bar=Bar(20,'d',100.5,101,98,98.2); c=Config(use_vwap=True)
+        self.assertIsNotNone(detect(bar,105,100,2,c,vwap=100))
+        for v in (98,98.2,None): self.assertIsNone(detect(bar,105,100,2,c,vwap=v))
+    def test_vwap_off_needs_no_input(self):
+        self.assertIsNotNone(detect(Bar(20,'d',99.5,102,99,101.8),100,95,2,Config()))
+
+if __name__ == "__main__": unittest.main()
