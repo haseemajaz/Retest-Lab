@@ -8,6 +8,30 @@ test_tick_collapsed_targets_rejected (test_engine.DetectionTests.test_tick_colla
 test_weak_body_rejected (test_engine.DetectionTests.test_weak_body_rejected) ... ok
 test_wrong_side_stop_rejected (test_engine.DetectionTests.test_wrong_side_stop_rejected) ... ok
 test_zero_atr_rejected (test_engine.DetectionTests.test_zero_atr_rejected) ... ok
+test_backwards_day_rejected (test_engine.DiagnosticTraceTests.test_backwards_day_rejected) ... ok
+test_bad_boolean_rejected (test_engine.DiagnosticTraceTests.test_bad_boolean_rejected) ... ok
+test_bad_day_rejected (test_engine.DiagnosticTraceTests.test_bad_day_rejected) ... ok
+test_bad_ohlc_rejected (test_engine.DiagnosticTraceTests.test_bad_ohlc_rejected) ... ok
+test_bad_prior_range_rejected (test_engine.DiagnosticTraceTests.test_bad_prior_range_rejected) ... ok
+test_bad_timestamp_rejected (test_engine.DiagnosticTraceTests.test_bad_timestamp_rejected) ... ok
+test_cancel_reason_on_event_only (test_engine.DiagnosticTraceTests.test_cancel_reason_on_event_only) ... ok
+test_config_overrides (test_engine.DiagnosticTraceTests.test_config_overrides) ... ok
+test_config_rejects_unknown_and_types (test_engine.DiagnosticTraceTests.test_config_rejects_unknown_and_types) ... ok
+test_confirm_retest_config (test_engine.DiagnosticTraceTests.test_confirm_retest_config) ... ok
+test_duplicate_indexes_rejected (test_engine.DiagnosticTraceTests.test_duplicate_indexes_rejected) ... ok
+test_expired_reason (test_engine.DiagnosticTraceTests.test_expired_reason) ... ok
+test_fill_bar_targets_deferred (test_engine.DiagnosticTraceTests.test_fill_bar_targets_deferred) ... ok
+test_gapped_indexes_rejected (test_engine.DiagnosticTraceTests.test_gapped_indexes_rejected) ... ok
+test_hand_checked_long_lifecycle (test_engine.DiagnosticTraceTests.test_hand_checked_long_lifecycle) ... ok
+test_missing_inputs_warmup (test_engine.DiagnosticTraceTests.test_missing_inputs_warmup) ... ok
+test_nan_rejected (test_engine.DiagnosticTraceTests.test_nan_rejected) ... ok
+test_negative_index_rejected (test_engine.DiagnosticTraceTests.test_negative_index_rejected) ... ok
+test_negative_volume_rejected (test_engine.DiagnosticTraceTests.test_negative_volume_rejected) ... ok
+test_partial_inputs_rejected (test_engine.DiagnosticTraceTests.test_partial_inputs_rejected) ... ok
+test_session_default_is_true (test_engine.DiagnosticTraceTests.test_session_default_is_true) ... ok
+test_short_lifecycle (test_engine.DiagnosticTraceTests.test_short_lifecycle) ... ok
+test_unconfirmed_rejected (test_engine.DiagnosticTraceTests.test_unconfirmed_rejected) ... ok
+test_vwap_missing_rejects_setup (test_engine.DiagnosticTraceTests.test_vwap_missing_rejects_setup) ... ok
 test_ema_filter_pass_and_fail (test_engine.FilterTests.test_ema_filter_pass_and_fail) ... ok
 test_fill_bar_target_is_deferred (test_engine.FilterTests.test_fill_bar_target_is_deferred) ... ok
 test_filters_off_do_not_require_inputs (test_engine.FilterTests.test_filters_off_do_not_require_inputs) ... ok
@@ -33,6 +57,9 @@ test_pending_invalidation_beats_fill (test_engine.LifecycleTests.test_pending_in
 test_session_cancels_pending (test_engine.LifecycleTests.test_session_cancels_pending) ... ok
 test_short_mirrors_long (test_engine.LifecycleTests.test_short_mirrors_long) ... ok
 test_unconfirmed_bar_no_state_change (test_engine.LifecycleTests.test_unconfirmed_bar_no_state_change) ... ok
+test_cli_missing_headers (test_engine.TraceCLITests.test_cli_missing_headers) ... ok
+test_cli_refuses_input_as_output (test_engine.TraceCLITests.test_cli_refuses_input_as_output) ... ok
+test_sample_file_cli (test_engine.TraceCLITests.test_sample_file_cli) ... ok
 test_confirm_long_waits_and_then_fills (test_engine.V3FeatureTests.test_confirm_long_waits_and_then_fills) ... ok
 test_confirm_short_waits_and_then_fills (test_engine.V3FeatureTests.test_confirm_short_waits_and_then_fills) ... ok
 test_day_precedes_other_cancellations (test_engine.V3FeatureTests.test_day_precedes_other_cancellations) ... ok
@@ -52,6 +79,6 @@ test_short_pass_fail_equal_and_missing (test_engine.VWAPTests.test_short_pass_fa
 test_vwap_off_needs_no_input (test_engine.VWAPTests.test_vwap_off_needs_no_input) ... ok
 
 ----------------------------------------------------------------------
-Ran 52 tests in 0.002s
+Ran 79 tests in 0.139s
 
 OK
