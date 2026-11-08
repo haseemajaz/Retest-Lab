@@ -160,4 +160,117 @@ class VWAPTests(unittest.TestCase):
     def test_vwap_off_needs_no_input(self):
         self.assertIsNotNone(detect(Bar(20,'d',99.5,102,99,101.8),100,95,2,Config()))
 
+
+
+class DiagnosticTraceTests(unittest.TestCase):
+    def row(self, i=20, **kwargs):
+        d={'index':str(i),'day':'2026-01-01','open':'99.5','high':'102','low':'99','close':'101.8','prior_high':'100','prior_low':'95','prior_atr':'2'}
+        d.update(kwargs); return d
+    def test_hand_checked_long_lifecycle(self):
+        from reference.engine import trace_rows
+        rows=[self.row(),self.row(21,open='100.4',high='100.5',low='100',close='100.2',prior_high='',prior_low='',prior_atr=''),self.row(22,open='100.5',high='102.5',low='100',close='102.4',prior_high='',prior_low='',prior_atr='')]
+        out=trace_rows(rows);self.assertEqual([x['events'] for x in out],['armed_long','modeled_fill','target_1|target_2|target_3|target_4']);self.assertEqual([x['state'] for x in out],['armed','active','idle']);self.assertEqual(out[-1]['fills_today'],1)
+    def test_short_lifecycle(self):
+        from reference.engine import trace_rows
+        r=[self.row(open='100.5',high='101',low='98',close='98.2',prior_high='105',prior_low='100'),self.row(21,open='99.5',high='100',low='99',close='99.3',prior_high='',prior_low='',prior_atr='')]
+        out=trace_rows(r);self.assertEqual([x['events'] for x in out],['armed_short','modeled_fill']);self.assertEqual(out[1]['direction'],-1)
+    def test_cancel_reason_on_event_only(self):
+        from reference.engine import trace_rows
+        r=[self.row(),self.row(21,in_session='false',prior_high='',prior_low='',prior_atr=''),self.row(22,prior_high='',prior_low='',prior_atr='')]
+        out=trace_rows(r);self.assertEqual(out[1]['cancel_reason'],'outside_session');self.assertEqual(out[2]['cancel_reason'],'')
+    def test_fill_bar_targets_deferred(self):
+        from reference.engine import trace_rows
+        r=[self.row(),self.row(21,open='101',high='105',low='100',close='104',prior_high='',prior_low='',prior_atr='')]
+        out=trace_rows(r);self.assertEqual(out[1]['events'],'modeled_fill');self.assertEqual(out[1]['targets_hit'],'')
+    def test_missing_inputs_warmup(self):
+        from reference.engine import trace_rows
+        self.assertEqual(trace_rows([self.row(prior_high='',prior_low='',prior_atr='')])[0]['state'],'idle')
+    def test_partial_inputs_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'all be present'): trace_rows([self.row(prior_atr='')])
+    def test_gapped_indexes_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'consecutive'): trace_rows([self.row(),self.row(22)])
+    def test_duplicate_indexes_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'consecutive'): trace_rows([self.row(),self.row()])
+    def test_negative_index_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'nonnegative integer'): trace_rows([self.row(-1)])
+    def test_bad_day_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'YYYY-MM-DD'): trace_rows([self.row(day='2026-02-30')])
+    def test_backwards_day_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'nondecreasing'): trace_rows([self.row(day='2026-01-02'),self.row(21)])
+    def test_bad_ohlc_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'invalid OHLC'): trace_rows([self.row(high='99')])
+    def test_nan_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'finite'): trace_rows([self.row(high='nan')])
+    def test_bad_boolean_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'true/false'): trace_rows([self.row(in_session='maybe')])
+    def test_unconfirmed_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'confirmed bars only'): trace_rows([self.row(confirmed='false')])
+    def test_negative_volume_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'volume cannot be negative'): trace_rows([self.row(volume='-1')])
+    def test_bad_prior_range_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'invalid prior'): trace_rows([self.row(prior_low='101')])
+    def test_vwap_missing_rejects_setup(self):
+        from reference.engine import trace_rows
+        self.assertEqual(trace_rows([self.row()],Config(use_vwap=True))[0]['events'],'')
+    def test_confirm_retest_config(self):
+        from reference.engine import trace_rows
+        r=[self.row(),self.row(21,open='100.2',high='100.4',low='99.5',close='99.8',prior_high='',prior_low='',prior_atr='')]
+        self.assertEqual(trace_rows(r,Config(confirm_retest=True))[1]['state'],'armed')
+    def test_config_rejects_unknown_and_types(self):
+        from reference.engine import load_config
+        import tempfile,json,os
+        for obj in ({'unknown':3},{'confirm_retest':'yes'},{'tick':float('nan')},{'expiry':2.0},{'targets':[1,2]}):
+            with tempfile.NamedTemporaryFile(mode='w',delete=False) as f: json.dump(obj,f); path=f.name
+            try:
+                with self.assertRaises(ValueError):load_config(path)
+            finally: os.unlink(path)
+    def test_config_overrides(self):
+        from reference.engine import load_config
+        import tempfile,json,os
+        with tempfile.NamedTemporaryFile(mode='w',delete=False) as f: json.dump({'expiry':3,'confirm_retest':True,'targets':[1,2,3,4]},f);path=f.name
+        try:self.assertEqual(load_config(path),Config(expiry=3,confirm_retest=True,targets=(1,2,3,4)))
+        finally:os.unlink(path)
+    def test_bad_timestamp_rejected(self):
+        from reference.engine import trace_rows
+        with self.assertRaisesRegex(ValueError,'timestamp'):trace_rows([self.row(timestamp='garbage')])
+    def test_expired_reason(self):
+        from reference.engine import trace_rows
+        r=[self.row()]+[self.row(i,open='101',high='102',low='101',close='101.5',prior_high='',prior_low='',prior_atr='') for i in range(21,23)]
+        out=trace_rows(r,Config(expiry=1));self.assertEqual(out[-1]['cancel_reason'],'expired')
+    def test_session_default_is_true(self):
+        from reference.engine import trace_rows
+        self.assertEqual(trace_rows([self.row()])[0]['events'],'armed_long')
+
+
+
+class TraceCLITests(unittest.TestCase):
+    def test_sample_file_cli(self):
+        import subprocess,sys,csv,io
+        p=subprocess.run([sys.executable,'-m','reference.engine','sample_trace.csv'],capture_output=True,text=True)
+        self.assertEqual(p.returncode,0,p.stderr);rows=list(csv.DictReader(io.StringIO(p.stdout)))
+        self.assertEqual([r['events'] for r in rows],['armed_long','modeled_fill','target_1|target_2|target_3|target_4'])
+    def test_cli_missing_headers(self):
+        import subprocess,sys,tempfile,os
+        with tempfile.NamedTemporaryFile(mode='w',delete=False) as f:f.write('index,day\n1,2026-01-01\n');path=f.name
+        try:
+            p=subprocess.run([sys.executable,'-m','reference.engine',path],capture_output=True,text=True)
+            self.assertEqual(p.returncode,2);self.assertIn('missing required',p.stderr)
+        finally:os.unlink(path)
+    def test_cli_refuses_input_as_output(self):
+        import subprocess,sys
+        p=subprocess.run([sys.executable,'-m','reference.engine','sample_trace.csv','--output','sample_trace.csv'],capture_output=True,text=True)
+        self.assertEqual(p.returncode,2);self.assertIn('must not overwrite',p.stderr)
+
 if __name__ == "__main__": unittest.main()
