@@ -139,3 +139,128 @@ class Engine:
             self.hit.clear()
             events.append('armed_long' if candidate.direction == 1 else 'armed_short')
         return events
+
+# Command-line diagnostic trace. It uses this same reference model; it is not
+# an independent Pine parity test or an order/execution simulator.
+def _optional_float(raw, field, row_number):
+    from math import isfinite
+    if raw is None or not str(raw).strip():
+        return None
+    try:
+        n = float(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f'row {row_number}: {field} must be a number') from exc
+    if not isfinite(n):
+        raise ValueError(f'row {row_number}: {field} must be finite')
+    return n
+
+def _boolean(raw, field, row_number, default=True):
+    if raw is None or not str(raw).strip():
+        return default
+    value = str(raw).strip().lower()
+    if value in ('true', '1'): return True
+    if value in ('false', '0'): return False
+    raise ValueError(f'row {row_number}: {field} must be true/false or 1/0')
+
+def load_config(path=None):
+    import json
+    from dataclasses import fields
+    from math import isfinite
+    if path is None: return Config()
+    with open(path, encoding='utf-8') as f: data = json.load(f)
+    if not isinstance(data, dict): raise ValueError('config must be a JSON object')
+    unknown = set(data) - {f.name for f in fields(Config)}
+    if unknown: raise ValueError('unknown config keys: ' + ', '.join(sorted(unknown)))
+    base = Config()
+    for key, value in data.items():
+        default = getattr(base, key)
+        if isinstance(default, bool):
+            if type(value) is not bool: raise ValueError(f'config {key} must be boolean')
+        elif isinstance(default, int):
+            if type(value) is not int: raise ValueError(f'config {key} must be an integer')
+        elif isinstance(default, float):
+            if type(value) not in (int, float) or not isfinite(value): raise ValueError(f'config {key} must be a finite number')
+        elif key == 'targets':
+            if not isinstance(value, list) or len(value) != 4 or any(type(x) not in (int, float) or not isfinite(x) for x in value):
+                raise ValueError('config targets must be four finite numbers')
+            data[key] = tuple(value)
+    try: return Config(**data)
+    except (AssertionError, TypeError, ValueError) as exc: raise ValueError('invalid config constraints') from exc
+
+def trace_rows(rows, cfg=None):
+    """Trace chronological confirmed bars supplied with prepared values.
+
+    Starts idle. `day` must be the same local calendar day used by Pine. Prior
+    high/low/ATR may all be blank during warm-up. This doesn't compute them.
+    """
+    from datetime import date, datetime
+    engine = Engine(cfg or Config())
+    previous_index = previous_day = None
+    output = []
+    for i, row in enumerate(rows, 2):
+        if None in row: raise ValueError(f'row {i}: too many CSV fields')
+        raw_index = (row.get('index') or '').strip()
+        if not raw_index.isdigit(): raise ValueError(f'row {i}: index must be a nonnegative integer')
+        index = int(raw_index)
+        if previous_index is not None and index != previous_index + 1:
+            raise ValueError(f'row {i}: indexes must be consecutive and increasing')
+        raw_day = (row.get('day') or '').strip()
+        try:
+            day = date.fromisoformat(raw_day)
+            if day.isoformat() != raw_day: raise ValueError()
+        except ValueError as exc: raise ValueError(f'row {i}: day must be YYYY-MM-DD') from exc
+        if previous_day is not None and day < previous_day: raise ValueError(f'row {i}: days must be nondecreasing')
+        timestamp = (row.get('timestamp') or '').strip()
+        if timestamp:
+            try: datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            except ValueError as exc: raise ValueError(f'row {i}: timestamp must be ISO 8601') from exc
+        numbers = {name: _optional_float(row.get(name), name, i) for name in ('open','high','low','close','prior_high','prior_low','prior_atr','ema','volume','prior_volume_avg','vwap')}
+        if any(numbers[k] is None for k in ('open','high','low','close')): raise ValueError(f'row {i}: OHLC is required')
+        o,h,l,c = (numbers[k] for k in ('open','high','low','close'))
+        if not l <= min(o,c) <= max(o,c) <= h: raise ValueError(f'row {i}: invalid OHLC')
+        prepared = [numbers[k] for k in ('prior_high','prior_low','prior_atr')]
+        if any(v is not None for v in prepared) and any(v is None for v in prepared): raise ValueError(f'row {i}: prior high, low and ATR must all be present or all blank')
+        if all(v is not None for v in prepared) and (prepared[0] < prepared[1] or prepared[2] < 0): raise ValueError(f'row {i}: invalid prior range or ATR')
+        if numbers['volume'] is not None and numbers['volume'] < 0: raise ValueError(f'row {i}: volume cannot be negative')
+        if numbers['prior_volume_avg'] is not None and numbers['prior_volume_avg'] < 0: raise ValueError(f'row {i}: prior volume average cannot be negative')
+        if not _boolean(row.get('confirmed'), 'confirmed', i): raise ValueError(f'row {i}: trace accepts confirmed bars only')
+        bar = Bar(index, raw_day, o,h,l,c, _boolean(row.get('in_session'),'in_session',i))
+        candidate = None if prepared[0] is None else detect(bar, *prepared, engine.cfg, ema=numbers['ema'], volume=numbers['volume'], prior_volume_avg=numbers['prior_volume_avg'], vwap=numbers['vwap'])
+        before = engine.state
+        events = engine.step(bar, candidate)
+        setup = engine.setup if before != 'idle' or engine.state != 'idle' else None
+        output.append({'index':index,'timestamp':timestamp,'day':raw_day,'state_before':before,'state':engine.state,'events':'|'.join(events),'cancel_reason':engine.last_cancel_reason if 'cancelled' in events else '', 'direction':setup.direction if setup else '', 'entry':setup.entry if setup else '', 'stop':setup.stop if setup else '', **{f't{j}': setup.targets[j-1] if setup else '' for j in range(1,5)}, 'fills_today':engine.fills_today,'targets_hit':'|'.join(map(str,sorted(engine.hit))) if setup else ''})
+        previous_index, previous_day = index, day
+    return output
+
+def main(argv=None):
+    import argparse, csv, json, sys
+    from pathlib import Path
+    parser=argparse.ArgumentParser(description='Trace prepared closed bars with the Retest Lab Python model; not a backtest or Pine validation.')
+    parser.add_argument('input', help='input CSV with OHLC and prepared indicators')
+    parser.add_argument('--config', help='optional JSON overrides for Python Config')
+    parser.add_argument('--output', help='output CSV (default stdout)')
+    args=parser.parse_args(argv)
+    try:
+        if args.output and Path(args.input).resolve() == Path(args.output).resolve(): raise ValueError('output must not overwrite input')
+        if args.output and args.config and Path(args.config).resolve() == Path(args.output).resolve(): raise ValueError('output must not overwrite config')
+        cfg=load_config(args.config)
+        with open(args.input, newline='', encoding='utf-8-sig') as f:
+            reader=csv.DictReader(f)
+            required={'index','day','open','high','low','close','prior_high','prior_low','prior_atr'}
+            if not reader.fieldnames or not required.issubset(reader.fieldnames): raise ValueError('CSV missing required columns: '+', '.join(sorted(required-set(reader.fieldnames or []))))
+            if len(reader.fieldnames) != len(set(reader.fieldnames)): raise ValueError('duplicate CSV headers')
+            result=trace_rows(reader,cfg)
+        if not result: raise ValueError('CSV has no bars')
+        fields=list(result[0])
+        if args.output:
+            with open(args.output,'w',newline='',encoding='utf-8') as f:
+                writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(result)
+        else:
+            writer=csv.DictWriter(sys.stdout,fieldnames=fields);writer.writeheader();writer.writerows(result)
+        return 0
+    except (OSError,ValueError,TypeError,json.JSONDecodeError) as exc:
+        print('Trace error: '+str(exc),file=sys.stderr);return 2
+
+if __name__ == '__main__':
+    raise SystemExit(main())
