@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Geometry calculator | Retest Lab</title><meta name="description" content="A local, educational calculator for hypothetical entry, stop and four tick-rounded target levels.">
+<style>
+:root{color-scheme:light dark;--bg:#f7f8fa;--surface:#fff;--text:#182432;--muted:#526174;--line:#d6dfe8;--blue:#175cba;--navy:#10243a;--risk:#883b2c;--riskbg:#fff3ef;--pale:#e7f0fc;--green:#176640}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ef9e3a;outline-offset:3px}.wrap{max-width:1120px;padding:0 32px;margin:auto}header{background:var(--surface);border-bottom:1px solid var(--line)}nav{min-height:74px;display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-weight:800;letter-spacing:-.04em;font-size:21px;color:var(--text);text-decoration:none}.brand i{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:8px;background:var(--navy);color:white;font-size:13px;font-style:normal;margin-right:9px;letter-spacing:0}nav a.back{font-size:14px;font-weight:700;text-decoration:none}.intro{padding:56px 0 30px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.13em;font-weight:800;color:var(--blue);margin:0 0 12px}.intro h1{font-size:clamp(36px,4vw,50px);line-height:1.05;letter-spacing:-.045em;margin:0 0 15px}.lead{font-size:18px;max-width:700px;color:var(--muted);margin:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:26px}.panel h2{font-size:21px;letter-spacing:-.02em;margin:0 0 5px}.helper{font-size:14px;color:var(--muted);margin:0 0 20px}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.field label{display:block;font-size:14px;font-weight:700;margin-bottom:6px}.field input,.field select{width:100%;min-height:48px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;background:var(--surface);color:var(--text)}.field input::placeholder{color:var(--muted);opacity:.8}.field.full{grid-column:1/-1}.subhead{font-size:14px;margin:22px 0 10px;font-weight:700}.rfields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}button{font:inherit;font-weight:700;min-height:48px;padding:10px 16px;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--text);background:var(--surface)}button:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}button.primary{background:var(--blue);border-color:var(--blue);color:white}button.primary:hover:not(:disabled){background:#124c99;border-color:#124c99;color:#fff}button:disabled{opacity:.55;cursor:not-allowed}.error{margin:14px 0 0;color:var(--risk);font-size:14px;font-weight:700}.error:empty{display:none}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;color:var(--muted);margin-top:18px}.result-head{margin:18px 0 16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.risk-box{background:var(--pale);border-radius:8px;padding:15px 16px}.risk-box span{display:block;color:var(--muted);font-size:13px}.risk-box strong{display:block;font-size:25px;letter-spacing:-.03em;line-height:1.2}.result-list{list-style:none;margin:0;padding:0}.result-list li{display:flex;justify-content:space-between;gap:20px;padding:11px 0;border-bottom:1px solid var(--line)}.result-list span{color:var(--muted)}.result-list strong{font-variant-numeric:tabular-nums}.result-list small{font-weight:500;color:var(--muted)}.notes{margin:30px 0 60px;border:1px solid #e8c4b9;background:var(--riskbg);color:var(--risk);border-radius:10px;padding:18px 20px}.notes strong{display:block;margin-bottom:4px}.notes p{margin:0;font-size:14px}.fine{font-size:13px;color:var(--muted);margin:14px 0 0}footer{border-top:1px solid var(--line);padding:26px 0 36px;color:var(--muted);font-size:13px}
+@media(max-width:760px){.wrap{padding:0 20px}nav{min-height:68px}.intro{padding:40px 0 26px}.grid{grid-template-columns:1fr;gap:16px}.panel{padding:20px}.rfields{grid-template-columns:repeat(2,minmax(0,1fr))}.intro h1{font-size:38px}.notes{margin-bottom:44px}}
+@media(prefers-color-scheme:dark){:root{--bg:#191d22;--surface:#232a31;--text:#f3f5f8;--muted:#bcc9d5;--line:#48535e;--blue:#9bc5ff;--navy:#234469;--risk:#ffd4c9;--riskbg:#402b28;--pale:#293b50;--green:#b2eacb}button.primary{background:#a7caff;border-color:#a7caff;color:#10243a}button.primary:hover:not(:disabled){background:#c5ddff;border-color:#c5ddff;color:#10243a}.notes{border-color:#90564b}}
+</style></head><body>
+<header><div class="wrap"><nav aria-label="Main navigation"><a class="brand" href="https://haseemajaz.github.io/Retest-Lab/"><i aria-hidden="true">RL</i>Retest Lab</a><a class="back" href="https://haseemajaz.github.io/Retest-Lab/">← Back to project</a></nav></div></header>
+<main class="wrap"><section class="intro"><p class="eyebrow">Independent research tool · v0.4.0</p><h1>Risk geometry, made clear.</h1><p class="lead">Explore hypothetical entry, stop and target levels. Everything is calculated in your browser—no account, market feed or broker connection.</p></section>
+<div class="grid"><section class="panel" aria-labelledby="inputs-title"><h2 id="inputs-title">Build an example</h2><p class="helper">Enter prices already aligned to your chosen tick size.</p>
+<form id="calc-form" novalidate><div class="fields"><div class="field full"><label for="direction">Direction</label><select id="direction"><option value="long">Long</option><option value="short">Short</option></select></div><div class="field"><label for="entry">Entry price</label><input id="entry" inputmode="decimal" autocomplete="off" placeholder="e.g. 100.00" required></div><div class="field"><label for="stop">Stop price</label><input id="stop" inputmode="decimal" autocomplete="off" placeholder="e.g. 98.80" required></div><div class="field full"><label for="tick">Tick size</label><input id="tick" inputmode="decimal" value="0.01" autocomplete="off" required></div></div><p class="subhead">Target multiples (R)</p><div class="rfields"><div class="field"><label for="r1">T1</label><input id="r1" inputmode="decimal" value="0.6" required></div><div class="field"><label for="r2">T2</label><input id="r2" inputmode="decimal" value="1" required></div><div class="field"><label for="r3">T3</label><input id="r3" inputmode="decimal" value="1.5" required></div><div class="field"><label for="r4">T4</label><input id="r4" inputmode="decimal" value="2" required></div></div><div class="actions"><button class="primary" type="submit">Calculate levels</button><button type="button" id="sample">Try example</button><button type="button" id="clear">Clear</button></div><p id="error" class="error" role="alert"></p></form></section>
+<section class="panel" aria-labelledby="results-title"><h2 id="results-title">Illustrative levels</h2><p class="helper">A calculation, not a signal or an order.</p><div id="result-area" aria-live="polite"><p class="empty" id="empty">Add your inputs, or choose “Try example,” to see the geometry.</p><div id="results" hidden><div class="result-head"><div class="risk-box"><span>Entry-to-stop distance</span><strong id="risk-distance"></strong><span id="risk-ticks"></span></div><div><strong id="result-direction"></strong><p class="fine" id="entry-stop"></p></div></div><ol class="result-list" id="target-list"></ol><p class="fine">Targets are rounded to the nearest tick; exact half-tick ties round toward the higher price. Rounding can change the achieved multiple.</p></div></div><div class="actions"><button type="button" id="export" disabled>Download example CSV</button></div><p class="fine">Inputs stay in this browser session. The CSV contains only this calculation; nothing is sent to a server by the calculator.</p></section></div>
+<aside class="notes"><strong>Not investment advice or account-risk protection</strong><p>Entry-to-stop distance is a price difference, not a cash loss estimate. This tool does not model position size, fees, spread, slippage, gaps, partial exits or execution. Outputs are hypothetical and may differ from chart calculations.</p></aside></main>
+<footer><div class="wrap">Retest Lab · independent research prototype · no broker connection</div></footer>
+<script>
+/* START GEOMETRY ENGINE */
+/* Retest Lab geometry calculator. Independent educational tool; no orders. */
+(function (root) {
+  'use strict';
+  const SCALE = 100000000n;
+  const MAX_PRICE = 1000000000n * SCALE;
+  const MAX_R = 1000n * SCALE;
+  function parse(value, label) {
+    const text = String(value == null ? '' : value).trim();
+    if (!/^\d{1,10}(?:\.\d{1,8})?$/.test(text)) throw new Error(`${label}: enter a non-negative decimal with up to 8 decimal places (no exponent).`);
+    const [whole, fraction = ''] = text.split('.');
+    return { value: BigInt(whole) * SCALE + BigInt((fraction + '00000000').slice(0, 8)), digits: fraction.length };
+  }
+  function format(value, digits) {
+    const whole = value / SCALE;
+    if (!digits) return whole.toString();
+    return whole + '.' + (value % SCALE).toString().padStart(8, '0').slice(0, digits);
+  }
+  function calculate(input) {
+    if (!input || !['long', 'short'].includes(input.direction)) throw new Error('Choose long or short.');
+    const entry = parse(input.entry, 'Entry').value;
+    const stop = parse(input.stop, 'Stop').value;
+    const tickData = parse(input.tick, 'Tick size');
+    const tick = tickData.value;
+    if (entry > MAX_PRICE || stop > MAX_PRICE) throw new Error('Entry and stop must not exceed 1,000,000,000.');
+    if (tick <= 0n || tick > MAX_PRICE) throw new Error('Tick size must be greater than zero and not exceed 1,000,000,000.');
+    if (entry % tick !== 0n || stop % tick !== 0n) throw new Error('Entry and stop must be exact multiples of tick size.');
+    const long = input.direction === 'long';
+    if ((long && stop >= entry) || (!long && stop <= entry)) throw new Error(long ? 'For a long example, stop must be below entry.' : 'For a short example, stop must be above entry.');
+    if (!Array.isArray(input.rs) || input.rs.length !== 4) throw new Error('Enter four R multiples.');
+    const rs = input.rs.map((r, i) => parse(r, `Target ${i + 1} R`).value);
+    if (rs.some(r => r <= 0n || r > MAX_R) || rs.some((r, i) => i > 0 && r <= rs[i-1])) throw new Error('R multiples must be positive, increasing and at most 1000.');
+    const entryTicks = entry / tick;
+    const riskTicks = long ? (entry - stop) / tick : (stop - entry) / tick;
+    const targets = rs.map(r => {
+      // Rounding target PRICE to nearest tick, ties toward the greater price.
+      const numerator = riskTicks * r;
+      const roundedDistance = long ? (numerator + SCALE / 2n) / SCALE : (numerator + SCALE / 2n - 1n) / SCALE;
+      return (long ? entryTicks + roundedDistance : entryTicks - roundedDistance) * tick;
+    });
+    if (targets.some(t => t < 0n || t > MAX_PRICE)) throw new Error('A target is outside the supported non-negative price range.');
+    let previous = entry;
+    for (const t of targets) {
+      if ((long && t <= previous) || (!long && t >= previous)) throw new Error('Tick rounding makes targets collapse or move to the wrong side. Change the inputs.');
+      previous = t;
+    }
+    const digits = tickData.digits;
+    return {
+      direction: input.direction,
+      entry: format(entry, digits), stop: format(stop, digits), tick: format(tick, digits),
+      risk: format(riskTicks * tick, digits), riskTicks: riskTicks.toString(),
+      rs: rs.map(r => format(r, 8).replace(/\.?0+$/, '')),
+      targets: targets.map(t => format(t, digits))
+    };
+  }
+  const api = { calculate };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  if (root) root.RetestGeometry = api;
+})(typeof globalThis === 'undefined' ? this : globalThis);
+
+/* END GEOMETRY ENGINE */
+</script>
+<script>
+(function(){'use strict';const $=id=>document.getElementById(id);const form=$('calc-form'),err=$('error'),results=$('results'),empty=$('empty'),exportBtn=$('export');let current=null;
+function invalidate(){current=null;results.hidden=true;empty.hidden=false;exportBtn.disabled=true;err.textContent='';}
+form.addEventListener('input',invalidate);form.addEventListener('change',invalidate);
+function compute(){try{const r=RetestGeometry.calculate({direction:$('direction').value,entry:$('entry').value,stop:$('stop').value,tick:$('tick').value,rs:[1,2,3,4].map(i=>$('r'+i).value)});current=r;err.textContent='';$('risk-distance').textContent=r.risk;$('risk-ticks').textContent=r.riskTicks+' ticks';$('result-direction').textContent=r.direction==='long'?'LONG EXAMPLE':'SHORT EXAMPLE';$('entry-stop').textContent='Entry '+r.entry+' · Stop '+r.stop;const list=$('target-list');list.replaceChildren();r.targets.forEach((t,i)=>{const li=document.createElement('li'),label=document.createElement('span'),strong=document.createElement('strong'),small=document.createElement('small');label.textContent='Target '+(i+1);small.textContent=' · '+r.rs[i]+'R';label.append(small);strong.textContent=t;li.append(label,strong);list.append(li)});empty.hidden=true;results.hidden=false;exportBtn.disabled=false;}catch(e){current=null;results.hidden=true;empty.hidden=false;exportBtn.disabled=true;err.textContent=e.message||'Unable to calculate.';}}
+form.addEventListener('submit',e=>{e.preventDefault();compute()});$('sample').addEventListener('click',()=>{$('direction').value='long';$('entry').value='100';$('stop').value='98.8';$('tick').value='0.01';['0.6','1','1.5','2'].forEach((r,i)=>$('r'+(i+1)).value=r);compute()});$('clear').addEventListener('click',()=>{form.reset();invalidate();$('entry').focus()});
+exportBtn.addEventListener('click',()=>{if(!current)return;const r=current;const lines=['direction,entry,stop,tick,risk_distance,risk_ticks,target_number,configured_r,target_price'];r.targets.forEach((p,i)=>lines.push([r.direction,r.entry,r.stop,r.tick,r.risk,r.riskTicks,i+1,r.rs[i],p].join(',')));const url=URL.createObjectURL(new Blob([lines.join('\r\n')+'\r\n'],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='retest_lab_geometry_example.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)});
+})();
+</script></body></html>
