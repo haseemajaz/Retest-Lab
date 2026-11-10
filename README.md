@@ -1,8 +1,15 @@
-# Retest Lab v0.3.1 — experimental research prototype
+# Retest Lab v0.4.0 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.3.1: diagnostic trace
+## New in v0.4.0: standalone geometry calculator
+Open [the calculator](https://haseemajaz.github.io/Retest-Lab/calculator.html) or open `calculator.html` from the ZIP in a modern browser with JavaScript enabled. It is self-contained and calculates locally; calculator inputs are not sent to a server. Choose long/short, enter an entry, stop, tick size and four R multiples, then calculate the price distance in points and ticks and four target prices. “Try example” loads made-up values; “Download example CSV” saves the current calculation. Editing an input clears the previous result. It does not fetch prices, generate signals, or place orders.
+
+Entry and stop must be non-negative, within 0–1,000,000,000, with up to eight decimal places and exactly aligned to a positive tick. Long stop must be below entry; short stop above. R values must be strictly increasing, >0 and ≤1000, with up to eight decimals. Targets must stay non-negative, within range, distinct and on the correct side after rounding; otherwise the calculator rejects the example. Decimal arithmetic uses integer units, then rounds each target price to the nearest tick with half-tick ties toward the higher price. Configured R values may differ from rounded realized ratios. This is an independent educational calculator: it may not match Pine floating-point behavior or a broker's tick rules. It ignores size, currency conversion, spread, commissions, slippage, gaps and execution. Price distance is not an estimate or cap on cash loss.
+
+The Pine indicator is unchanged from v0.3.0 and remains unvalidated in v0.4.0. 22 calculator unit tests and 79 Python reference/CLI tests passed on synthetic inputs. A local browser test covered example/short calculations, validation, invalidating stale results, CSV export, mobile width and no remote calculator requests. These checks do not verify performance or Pine parity.
+
+## v0.3.1: diagnostic trace
 The Pine indicator is **unchanged from v0.3.0**. A new offline CSV trace emits one row per confirmed bar: state before/after, events, cancellation reason, direction, frozen levels, modeled daily fills and observed targets. It helps organize a manual TradingView comparison, but uses the same Python reference engine, does not run Pine, cannot establish parity and is not a performance backtest.
 
 Run from the extracted folder: `python -m reference.engine sample_trace.csv --output trace.csv` (Python 3.10+, standard library). The sample bars are synthetic. The output file is overwritten if already present; the input and config files are protected against being used as the output. Without `--output`, CSV goes to stdout. Optional JSON Config overrides: `--config settings.json` (example: `{"confirm_retest": true, "expiry": 5}`). Use the names from `reference/engine.py` and match the TradingView inputs manually; `tick` must match the instrument.
@@ -28,4 +35,4 @@ On a confirmed breakout bar, close strictly breaks the preceding 20-bar high/low
 79 Python reference and CLI tests passed on synthetic inputs. Python receives precomputed range, ATR, EMA, VWAP and volume; it neither compiles Pine nor proves parity or profitability. v0.2 compiled on AAPL 1D and advanced five replay bars; v0.3 has **not** been compiled, replayed, or alert-tested in TradingView due to the account's occupied chart slots. No cross-market evaluation, forward paper study or independently verified performance. See `VALIDATION.md`. For a detailed online checklist and candidate features, see [TEST_PLAN.md](TEST_PLAN.md).
 
 ## Local tests
-`python -m unittest discover -s tests -v` (Python 3.10+, standard library). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
+`python -m unittest discover -s tests -v` (Python 3.10+, standard library); `node --test tests/test_geometry.cjs` (Node 18+). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
