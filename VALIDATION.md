@@ -1,6 +1,9 @@
-# Validation record — v0.3.1 package / v0.3 Pine indicator
+# Validation record — v0.4.0 package / v0.3 Pine indicator
 
 ## Completed
+- 2026-11-10: calculator: 22 JavaScript unit tests passed (`node --test tests/test_geometry.cjs`) covering long/short examples, tick alignment, half-tick rounding direction, target collapse, number bounds and invalid inputs. 79 Python reference/CLI tests also passed.
+- 2026-11-10: locally tested the self-contained calculator in a headless browser: long sample, short case, CSV download contents, input invalidation, error handling, mobile width and no external network requests. Manual layout review included desktop/mobile and light/dark. These are calculator checks, not market data, performance or Pine parity tests.
+- v0.4.0 adds the standalone calculator and changes no Pine logic. The indicator has not been newly compiled or replay-tested.
 - 2026-11-08: 79 Python unit/CLI tests pass on synthetic inputs; sample CSV CLI output was inspected for an armed long, modeled fill and four later target events. Malformed non-finite input was rejected. The trace and tests use the same reference model, and this is not Pine/Python parity or a trading-performance test.
 - 2026-11-08: the account's existing chart still showed Breakout Probability and EMA using the two Basic indicator slots. They were not removed; v0.3 could not be added without an available slot. The v0.3.1 package leaves the Pine indicator unchanged.
 - 2026-11-07: 52 Python synthetic unit tests pass (`python -m unittest discover -s tests -v`); `test_results.txt` records the output. The Python reference takes prepared indicators rather than obtaining market data. These tests do not compile Pine, independently validate parity, or measure trading returns.
