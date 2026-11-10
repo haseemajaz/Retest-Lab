@@ -79,6 +79,6 @@ test_short_pass_fail_equal_and_missing (test_engine.VWAPTests.test_short_pass_fa
 test_vwap_off_needs_no_input (test_engine.VWAPTests.test_vwap_off_needs_no_input) ... ok
 
 ----------------------------------------------------------------------
-Ran 79 tests in 0.139s
+Ran 79 tests in 0.189s
 
 OK
