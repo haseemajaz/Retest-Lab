@@ -1,0 +1,30 @@
+✔ long reference geometry (3.731532ms)
+✔ short reference geometry (0.318664ms)
+✔ no exponent syntax (0.549474ms)
+✔ no negative inputs (0.206974ms)
+✔ zero tick (0.310851ms)
+✔ unaligned entry (0.270221ms)
+✔ unaligned stop (0.201272ms)
+✔ long wrong-side stop (0.1939ms)
+✔ short wrong-side stop (0.231189ms)
+✔ equal stop (0.306493ms)
+✔ target order (3.441215ms)
+✔ zero R (0.20965ms)
+✔ bad direction (0.145027ms)
+✔ exact tick integer precision (0.252788ms)
+✔ long half tick rounds toward higher price (0.189774ms)
+✔ short half tick rounds toward higher price (0.206615ms)
+✔ rounding collapsed targets rejected (0.204166ms)
+✔ negative short target rejected (0.232696ms)
+✔ invalid number decimals (0.205074ms)
+✔ R maximum enforced (1.39613ms)
+✔ price maximum enforced (0.18366ms)
+✔ multiples returned canonical (0.159433ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.802382
