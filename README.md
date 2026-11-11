@@ -1,13 +1,20 @@
-# Retest Lab v0.4.0 — experimental research prototype
+# Retest Lab v0.4.1 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.4.0: standalone geometry calculator
+## New in v0.4.1: rounding-aware target details
+The standalone calculator now shows each target's distance from entry in ticks, its configured R and its **effective R after tick rounding**. Effective R is the actual target distance divided by the entry-to-stop distance, displayed to four decimal places (nearest, ties up); this display rounding can itself hide a very small difference. “Changed by rounding” is determined by exact integer comparison before display rounding. This is price geometry, not a realized return. Select long or short and choose “Try rounding example” to see how half-tick price ties affect the result. “Try example” also respects the selected direction.
+
+The CSV retains its previous columns and appends `target_distance_ticks`, `effective_r_4dp` and `changed_by_rounding` (true/false). Update any CSV consumers for the additional columns. The calculator runs in-browser and sends no inputs to a server. It is not a market feed, position-sizing tool, execution simulator, account-risk control or trading recommendation.
+
+30 JavaScript tests and 79 Python synthetic reference/CLI tests passed. Local browser checks covered examples in both directions, tick rounding, CSV content, invalidation, errors and mobile/dark layouts. The unchanged Pine source is not newly validated.
+
+## v0.4.0: standalone geometry calculator
 Open [the calculator](https://haseemajaz.github.io/Retest-Lab/calculator.html) or open `calculator.html` from the ZIP in a modern browser with JavaScript enabled. It is self-contained and calculates locally; calculator inputs are not sent to a server. Choose long/short, enter an entry, stop, tick size and four R multiples, then calculate the price distance in points and ticks and four target prices. “Try example” loads made-up values; “Download example CSV” saves the current calculation. Editing an input clears the previous result. It does not fetch prices, generate signals, or place orders.
 
 Entry and stop must be non-negative, within 0–1,000,000,000, with up to eight decimal places and exactly aligned to a positive tick. Long stop must be below entry; short stop above. R values must be strictly increasing, >0 and ≤1000, with up to eight decimals. Targets must stay non-negative, within range, distinct and on the correct side after rounding; otherwise the calculator rejects the example. Decimal arithmetic uses integer units, then rounds each target price to the nearest tick with half-tick ties toward the higher price. Configured R values may differ from rounded realized ratios. This is an independent educational calculator: it may not match Pine floating-point behavior or a broker's tick rules. It ignores size, currency conversion, spread, commissions, slippage, gaps and execution. Price distance is not an estimate or cap on cash loss.
 
-The Pine indicator is unchanged from v0.3.0 and remains unvalidated in v0.4.0. 22 calculator unit tests and 79 Python reference/CLI tests passed on synthetic inputs. A local browser test covered example/short calculations, validation, invalidating stale results, CSV export, mobile width and no remote calculator requests. These checks do not verify performance or Pine parity.
+The Pine indicator is unchanged from v0.3.0 and remains unvalidated in v0.4.0. At v0.4.0, 22 calculator unit tests and 79 Python reference/CLI tests passed on synthetic inputs. A local browser test covered example/short calculations, validation, invalidating stale results, CSV export, mobile width and no remote calculator requests. These checks do not verify performance or Pine parity.
 
 ## v0.3.1: diagnostic trace
 The Pine indicator is **unchanged from v0.3.0**. A new offline CSV trace emits one row per confirmed bar: state before/after, events, cancellation reason, direction, frozen levels, modeled daily fills and observed targets. It helps organize a manual TradingView comparison, but uses the same Python reference engine, does not run Pine, cannot establish parity and is not a performance backtest.
