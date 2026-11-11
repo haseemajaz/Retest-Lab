@@ -1,6 +1,8 @@
-# Validation record — v0.4.1 package / v0.3 Pine indicator
+# Validation record — v0.5.0 package / v0.3 Pine indicator
 
 ## Completed
+- 2026-11-11: 40 JavaScript unit tests passed (30 geometry, 10 comparison). The comparison tests cover capacity, removal, slot reuse, clearing, snapshot isolation, CSV rows and invalid inputs. 79 Python synthetic reference/CLI tests passed.
+- 2026-11-11: local browser checks verified long/short snapshots, the three-example cap, a 12-target CSV, removal/reuse, invalidated current input with retained saved examples, clear, refresh clearing, mobile/dark layouts, no calculator network requests and no observed JavaScript errors. These checks are not a performance study, broker execution test or Pine validation.
 - 2026-11-11: 30 JavaScript geometry unit tests and 79 Python synthetic reference/CLI tests passed. New tests cover long/short effective R, exact tick-distance comparisons, half-tick target price ties, display rounding, large values and malformed target counts.
 - 2026-11-11: locally tested long and short examples, rounding examples, extended CSV contents, stale result invalidation, input errors, mobile width and dark mode; no external requests or JavaScript errors occurred during the calculator tests. Results are hypothetical and do not establish returns or Pine parity. Pine source is unchanged and not newly validated.
 - 2026-11-10: calculator: 22 JavaScript unit tests passed (`node --test tests/test_geometry.cjs`) covering long/short examples, tick alignment, half-tick rounding direction, target collapse, number bounds and invalid inputs. 79 Python reference/CLI tests also passed.
