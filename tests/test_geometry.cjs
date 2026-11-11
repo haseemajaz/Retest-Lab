@@ -24,3 +24,12 @@ test('invalid number decimals',()=>assert.throws(()=>calculate({...base,tick:'0.
 test('R maximum enforced',()=>assert.throws(()=>calculate({...base,rs:['1','2','3','1001']}),/1000/));
 test('price maximum enforced',()=>assert.throws(()=>calculate({...base,entry:'1000000001'}),/1,000,000,000/));
 test('multiples returned canonical',()=>assert.deepEqual(calculate({...base,rs:['0.60','1.00','1.50','2.00']}).rs,['0.6','1','1.5','2']));
+
+test('actual target ticks and ratios for long',()=>{const r=calculate(base);assert.deepEqual(r.targetTicks,['72','120','180','240']);assert.deepEqual(r.achievedR,['0.6000','1.0000','1.5000','2.0000']);assert.deepEqual(r.roundingChanged,[false,false,false,false])});
+test('actual target ticks and ratios for short',()=>{const r=calculate({...base,direction:'short',stop:'101.2'});assert.deepEqual(r.targetTicks,['72','120','180','240']);assert.deepEqual(r.achievedR,['0.6000','1.0000','1.5000','2.0000'])});
+test('long half tick effective R differs from configured',()=>{const r=calculate({direction:'long',entry:'100',stop:'99',tick:'1',rs:['1.5','2.5','3.5','4.5']});assert.deepEqual(r.achievedR,['2.0000','3.0000','4.0000','5.0000']);assert.deepEqual(r.roundingChanged,[true,true,true,true])});
+test('short half tick effective R differs from configured',()=>{const r=calculate({direction:'short',entry:'100',stop:'101',tick:'1',rs:['1.5','2.5','3.5','4.5']});assert.deepEqual(r.achievedR,['1.0000','2.0000','3.0000','4.0000']);assert.deepEqual(r.roundingChanged,[true,true,true,true])});
+test('nonterminating effective ratio rounds to four decimals',()=>{const r=calculate({direction:'long',entry:'100',stop:'97',tick:'1',rs:['0.3','0.7','1','1.3']});assert.deepEqual(r.achievedR,['0.3333','0.6667','1.0000','1.3333']);assert.deepEqual(r.roundingChanged,[true,true,false,true])});
+test('four-decimal ratio tie rounds up',()=>{const r=calculate({direction:'long',entry:'100000',stop:'80000',tick:'1',rs:['0.00005','0.00010','0.00015','0.00020']});assert.equal(r.achievedR[0],'0.0001');assert.equal(r.targetTicks[0],'1')});
+test('large values remain precise',()=>{const r=calculate({direction:'long',entry:'100000000',stop:'99999999.00000000',tick:'0.00000001',rs:['1','2','3','4']});assert.equal(r.targetTicks[0],'100000000');assert.equal(r.achievedR[0],'1.0000')});
+test('three R values are rejected',()=>assert.throws(()=>calculate({...base,rs:['1','2','3']}),/four/));
