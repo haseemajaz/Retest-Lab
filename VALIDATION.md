@@ -1,6 +1,8 @@
-# Validation record — v0.4.0 package / v0.3 Pine indicator
+# Validation record — v0.4.1 package / v0.3 Pine indicator
 
 ## Completed
+- 2026-11-11: 30 JavaScript geometry unit tests and 79 Python synthetic reference/CLI tests passed. New tests cover long/short effective R, exact tick-distance comparisons, half-tick target price ties, display rounding, large values and malformed target counts.
+- 2026-11-11: locally tested long and short examples, rounding examples, extended CSV contents, stale result invalidation, input errors, mobile width and dark mode; no external requests or JavaScript errors occurred during the calculator tests. Results are hypothetical and do not establish returns or Pine parity. Pine source is unchanged and not newly validated.
 - 2026-11-10: calculator: 22 JavaScript unit tests passed (`node --test tests/test_geometry.cjs`) covering long/short examples, tick alignment, half-tick rounding direction, target collapse, number bounds and invalid inputs. 79 Python reference/CLI tests also passed.
 - 2026-11-10: locally tested the self-contained calculator in a headless browser: long sample, short case, CSV download contents, input invalidation, error handling, mobile width and no external network requests. Manual layout review included desktop/mobile and light/dark. These are calculator checks, not market data, performance or Pine parity tests.
 - v0.4.0 adds the standalone calculator and changes no Pine logic. The indicator has not been newly compiled or replay-tested.
