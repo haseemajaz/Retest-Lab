@@ -1,8 +1,13 @@
-# Retest Lab v0.5.0 — experimental research prototype
+# Retest Lab v0.5.1 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.5.0: compare hypothetical examples
+## New in v0.5.1: reload a saved scenario
+Select **Load scenario** on a comparison card, then confirm **Replace form** (or choose Cancel). The calculator restores direction, entry, stop, tick and the four configured R values and recalculates. The saved snapshot remains unchanged: edit the loaded form and save another snapshot if desired. Loading replaces the current form, so cancel if its contents are needed. The three-card limit still applies and snapshots disappear on refresh or navigation; export first to keep a local record. CSV format is unchanged.
+
+Local browser checks exercised confirmed long/short restoration, cancellation, calculated results, isolation, focus, input invalidation, mobile/dark layout and no network requests. The existing 40 JavaScript and 79 Python synthetic tests passed. No trading outcomes or execution were tested.
+
+## v0.5.0: compare hypothetical examples
 In the standalone calculator, calculate a valid example and choose **Save to comparison**. Save up to three snapshots; each card shows direction, entry, stop, tick size, stop distance, target prices and effective R. Change the form and calculate again before saving a different example. Remove individual cards or clear the whole comparison; labels A, B and C can be reused. Saving the same calculation twice creates two snapshots. Comparison is limited to three; remove one before adding another.
 
 The snapshots remain in the current page's memory only; refresh, navigation or closing the page clears them. They are not stored to an account or sent to a server. Use **Download comparison CSV** before leaving to save all snapshots locally. The comparison CSV has one row per target, starts with a `scenario` column, and contains the same target fields as the individual-example CSV. It is a separate file; existing example CSV output is unchanged.
