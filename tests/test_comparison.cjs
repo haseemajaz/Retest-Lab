@@ -1,0 +1,13 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {createBook}=require('../comparison.js');const {calculate}=require('../geometry.js');
+const make=(direction='long')=>calculate({direction,entry:'100',stop:direction==='long'?'98.8':'101.2',tick:'0.01',rs:['0.6','1','1.5','2']});
+test('empty book',()=>{let b=createBook();assert.deepEqual(b.list(),[]);assert.equal(b.csv().split('\r\n').length,2)});
+test('one snapshot',()=>{let b=createBook();assert.equal(b.add(make()),'A');assert.equal(b.list()[0].result.targets[0],'100.72')});
+test('limit of three',()=>{let b=createBook();assert.equal(b.add(make()),'A');assert.equal(b.add(make('short')),'B');assert.equal(b.add(make()),'C');assert.throws(()=>b.add(make()),/full/);assert.equal(b.list().length,3)});
+test('removed slot reused without changing others',()=>{let b=createBook();b.add(make());b.add(make());b.add(make());b.remove('B');assert.equal(b.add(make('short')),'B');assert.deepEqual(b.list().map(x=>x.id),['A','C','B'])});
+test('remove unknown preserves book',()=>{let b=createBook();b.add(make());b.remove('Z');assert.equal(b.list().length,1)});
+test('clear empties and resets labels',()=>{let b=createBook();b.add(make());b.clear();assert.equal(b.list().length,0);assert.equal(b.add(make()),'A')});
+test('snapshot does not change with original result',()=>{let b=createBook(),r=make();b.add(r);r.targets[0]='0';assert.equal(b.list()[0].result.targets[0],'100.72')});
+test('list is detached from internal snapshot',()=>{let b=createBook();b.add(make());let a=b.list();a[0].result.targets[0]='0';assert.equal(b.list()[0].result.targets[0],'100.72')});
+test('CSV exports all target rows and scenario labels',()=>{let b=createBook();b.add(make());b.add(make('short'));let s=b.csv();assert.equal(s.trim().split('\r\n').length,9);assert.match(s,/^scenario,direction,entry,stop,tick/);assert.match(s,/A,long,100.00,98.80,0.01,1.20,120,1,0.6,100.72,72,0.6000,false/);assert.match(s,/B,short,100.00,101.20,0.01,1.20,120,1,0.6,99.28,72,0.6000,false/)});
+test('requires a calculated result',()=>{let b=createBook();assert.throws(()=>b.add(null),/valid/);assert.throws(()=>b.add({targets:[]}),/valid/)});
