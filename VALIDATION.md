@@ -1,6 +1,7 @@
-# Validation record — v0.5.0 package / v0.3 Pine indicator
+# Validation record — v0.5.1 package / v0.3 Pine indicator
 
 ## Completed
+- 2026-11-11: v0.5.1 local browser checks covered explicit load confirmation and cancel, long and short restored inputs and outputs, unchanged snapshots, subsequent edit invalidation, keyboard focus, mobile/dark display, and no network requests or observed JavaScript errors. Existing v0.5.0 browser regression suite passed. The 40 JavaScript and 79 Python unit/CLI tests passed on synthetic data. This is not execution, profitability, or Pine validation.
 - 2026-11-11: 40 JavaScript unit tests passed (30 geometry, 10 comparison). The comparison tests cover capacity, removal, slot reuse, clearing, snapshot isolation, CSV rows and invalid inputs. 79 Python synthetic reference/CLI tests passed.
 - 2026-11-11: local browser checks verified long/short snapshots, the three-example cap, a 12-target CSV, removal/reuse, invalidated current input with retained saved examples, clear, refresh clearing, mobile/dark layouts, no calculator network requests and no observed JavaScript errors. These checks are not a performance study, broker execution test or Pine validation.
 - 2026-11-11: 30 JavaScript geometry unit tests and 79 Python synthetic reference/CLI tests passed. New tests cover long/short effective R, exact tick-distance comparisons, half-tick target price ties, display rounding, large values and malformed target counts.
