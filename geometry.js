@@ -43,13 +43,21 @@
       if ((long && t <= previous) || (!long && t >= previous)) throw new Error('Tick rounding makes targets collapse or move to the wrong side. Change the inputs.');
       previous = t;
     }
+    const targetTicks = targets.map(t => (long ? (t - entry) : (entry - t)) / tick);
+    // Report the target-to-stop ratio to four decimals, nearest, ties up.
+    const achievedR = targetTicks.map(t => {
+      const n = (t * 10000n + riskTicks / 2n) / riskTicks;
+      return (n / 10000n).toString() + '.' + (n % 10000n).toString().padStart(4, '0');
+    });
+    const roundingChanged = targetTicks.map((t, i) => t * SCALE !== riskTicks * rs[i]);
     const digits = tickData.digits;
     return {
       direction: input.direction,
       entry: format(entry, digits), stop: format(stop, digits), tick: format(tick, digits),
       risk: format(riskTicks * tick, digits), riskTicks: riskTicks.toString(),
       rs: rs.map(r => format(r, 8).replace(/\.?0+$/, '')),
-      targets: targets.map(t => format(t, digits))
+      targets: targets.map(t => format(t, digits)),
+      targetTicks: targetTicks.map(t => t.toString()), achievedR, roundingChanged
     };
   }
   const api = { calculate };
