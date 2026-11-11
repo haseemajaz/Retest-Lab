@@ -1,13 +1,22 @@
-# Retest Lab v0.4.1 — experimental research prototype
+# Retest Lab v0.5.0 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.4.1: rounding-aware target details
+## New in v0.5.0: compare hypothetical examples
+In the standalone calculator, calculate a valid example and choose **Save to comparison**. Save up to three snapshots; each card shows direction, entry, stop, tick size, stop distance, target prices and effective R. Change the form and calculate again before saving a different example. Remove individual cards or clear the whole comparison; labels A, B and C can be reused. Saving the same calculation twice creates two snapshots. Comparison is limited to three; remove one before adding another.
+
+The snapshots remain in the current page's memory only; refresh, navigation or closing the page clears them. They are not stored to an account or sent to a server. Use **Download comparison CSV** before leaving to save all snapshots locally. The comparison CSV has one row per target, starts with a `scenario` column, and contains the same target fields as the individual-example CSV. It is a separate file; existing example CSV output is unchanged.
+
+Compare price distances only when the instrument and price units are compatible. Neither a wider stop nor a higher R proves a better trade. This tool does not model size, currency conversion, costs, execution, actual losses, or performance. All inputs and examples are hypothetical.
+
+40 JavaScript tests (30 geometry and 10 comparison) and 79 Python synthetic reference/CLI tests passed. Local browser tests checked snapshot isolation, capacity, removal, reuse, CSV content, clear and refresh, plus long/short examples, mobile/dark layout and no external calculator requests. The Pine source is unchanged and not newly validated.
+
+## v0.4.1: rounding-aware target details
 The standalone calculator now shows each target's distance from entry in ticks, its configured R and its **effective R after tick rounding**. Effective R is the actual target distance divided by the entry-to-stop distance, displayed to four decimal places (nearest, ties up); this display rounding can itself hide a very small difference. “Changed by rounding” is determined by exact integer comparison before display rounding. This is price geometry, not a realized return. Select long or short and choose “Try rounding example” to see how half-tick price ties affect the result. “Try example” also respects the selected direction.
 
 The CSV retains its previous columns and appends `target_distance_ticks`, `effective_r_4dp` and `changed_by_rounding` (true/false). Update any CSV consumers for the additional columns. The calculator runs in-browser and sends no inputs to a server. It is not a market feed, position-sizing tool, execution simulator, account-risk control or trading recommendation.
 
-30 JavaScript tests and 79 Python synthetic reference/CLI tests passed. Local browser checks covered examples in both directions, tick rounding, CSV content, invalidation, errors and mobile/dark layouts. The unchanged Pine source is not newly validated.
+At v0.4.1, 30 JavaScript tests and 79 Python synthetic reference/CLI tests passed. Local browser checks covered examples in both directions, tick rounding, CSV content, invalidation, errors and mobile/dark layouts. The unchanged Pine source is not newly validated.
 
 ## v0.4.0: standalone geometry calculator
 Open [the calculator](https://haseemajaz.github.io/Retest-Lab/calculator.html) or open `calculator.html` from the ZIP in a modern browser with JavaScript enabled. It is self-contained and calculates locally; calculator inputs are not sent to a server. Choose long/short, enter an entry, stop, tick size and four R multiples, then calculate the price distance in points and ticks and four target prices. “Try example” loads made-up values; “Download example CSV” saves the current calculation. Editing an input clears the previous result. It does not fetch prices, generate signals, or place orders.
@@ -42,4 +51,4 @@ On a confirmed breakout bar, close strictly breaks the preceding 20-bar high/low
 79 Python reference and CLI tests passed on synthetic inputs. Python receives precomputed range, ATR, EMA, VWAP and volume; it neither compiles Pine nor proves parity or profitability. v0.2 compiled on AAPL 1D and advanced five replay bars; v0.3 has **not** been compiled, replayed, or alert-tested in TradingView due to the account's occupied chart slots. No cross-market evaluation, forward paper study or independently verified performance. See `VALIDATION.md`. For a detailed online checklist and candidate features, see [TEST_PLAN.md](TEST_PLAN.md).
 
 ## Local tests
-`python -m unittest discover -s tests -v` (Python 3.10+, standard library); `node --test tests/test_geometry.cjs` (Node 18+). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
+`python -m unittest discover -s tests -v` (Python 3.10+, standard library); `node --test tests/test_geometry.cjs tests/test_comparison.cjs` (Node 18+). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
