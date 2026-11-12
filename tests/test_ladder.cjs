@@ -1,0 +1,10 @@
+const test=require('node:test'),assert=require('node:assert/strict'),{rows}=require('../ladder.js'),{calculate}=require('../geometry.js');
+const make=(direction='long')=>calculate({direction,entry:'100',stop:direction==='long'?'98.8':'101.2',tick:'0.01',rs:['0.6','1','1.5','2']});
+test('long displays highest first',()=>assert.deepEqual(rows(make()).map(x=>[x.label,x.price]),[['Target 4','102.40'],['Target 3','101.80'],['Target 2','101.20'],['Target 1','100.72'],['Entry','100.00'],['Stop','98.80']]));
+test('short displays highest first',()=>assert.deepEqual(rows(make('short')).map(x=>[x.label,x.price]),[['Stop','101.20'],['Entry','100.00'],['Target 1','99.28'],['Target 2','98.80'],['Target 3','98.20'],['Target 4','97.60']]));
+test('preserves price text and decimal precision',()=>{const r=calculate({direction:'long',entry:'999999990',stop:'999999989',tick:'0.00000001',rs:['0.6','1','1.5','2']});assert.equal(rows(r)[0].price,'999999992.00000000')});
+test('uses result kind labels',()=>assert.deepEqual(rows(make()).map(x=>x.kind),['target','target','target','target','entry','stop']));
+test('does not mutate the result targets',()=>{const r=make(),before=r.targets.slice();rows(r);assert.deepEqual(r.targets,before)});
+test('rejects missing result',()=>assert.throws(()=>rows(null),/valid/));
+test('rejects invalid direction',()=>assert.throws(()=>rows({...make(),direction:'other'}),/valid/));
+test('rejects malformed target count',()=>assert.throws(()=>rows({...make(),targets:['1']}),/valid/));
