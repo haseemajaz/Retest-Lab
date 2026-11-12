@@ -1,8 +1,15 @@
-# Retest Lab v0.5.1 — experimental research prototype
+# Retest Lab v0.6.0 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.5.1: reload a saved scenario
+## New in v0.6.0: save and restore a comparison file
+After saving one to three examples, choose **Save comparison file** to download a versioned JSON file to your device. To restore later, choose that JSON file under **Restore a comparison file**; review the count and select **Replace comparison** or **Cancel restore**. Restore replaces all current comparison cards only after confirmation; the editable form is not replaced. CSV remains a separate export-only format and cannot be restored.
+
+Files contain scenario labels and inputs, not broker or account data. They are read and written locally by the calculator and are not sent to a server. Snapshots still disappear on refresh unless you save a file first. Treat downloaded files as private: anyone with the file can read its contents. Only version 1 comparison JSON, at most 16 KB, with one to three unique A/B/C scenarios and valid calculator inputs is accepted. Outputs are recalculated from inputs; malformed files and invalid setups leave the current comparison intact. Future versions may change calculation rules, so results can change when reopened.
+
+52 JavaScript tests (30 geometry, 10 comparison, 12 file validation) and 79 Python reference/CLI tests passed on synthetic data. Local browser checks covered file download, restoration after refresh, confirmation and cancel, invalid and oversized files, snapshot loading, mobile/dark layouts, and no calculator network requests. These checks do not validate market performance or execution.
+
+## v0.5.1: reload a saved scenario
 Select **Load scenario** on a comparison card, then confirm **Replace form** (or choose Cancel). The calculator restores direction, entry, stop, tick and the four configured R values and recalculates. The saved snapshot remains unchanged: edit the loaded form and save another snapshot if desired. Loading replaces the current form, so cancel if its contents are needed. The three-card limit still applies and snapshots disappear on refresh or navigation; export first to keep a local record. CSV format is unchanged.
 
 Local browser checks exercised confirmed long/short restoration, cancellation, calculated results, isolation, focus, input invalidation, mobile/dark layout and no network requests. The existing 40 JavaScript and 79 Python synthetic tests passed. No trading outcomes or execution were tested.
@@ -56,4 +63,4 @@ On a confirmed breakout bar, close strictly breaks the preceding 20-bar high/low
 79 Python reference and CLI tests passed on synthetic inputs. Python receives precomputed range, ATR, EMA, VWAP and volume; it neither compiles Pine nor proves parity or profitability. v0.2 compiled on AAPL 1D and advanced five replay bars; v0.3 has **not** been compiled, replayed, or alert-tested in TradingView due to the account's occupied chart slots. No cross-market evaluation, forward paper study or independently verified performance. See `VALIDATION.md`. For a detailed online checklist and candidate features, see [TEST_PLAN.md](TEST_PLAN.md).
 
 ## Local tests
-`python -m unittest discover -s tests -v` (Python 3.10+, standard library); `node --test tests/test_geometry.cjs tests/test_comparison.cjs` (Node 18+). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
+`python -m unittest discover -s tests -v` (Python 3.10+, standard library); `node --test tests/test_geometry.cjs tests/test_comparison.cjs tests/test_scenario_file.cjs` (Node 18+). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
