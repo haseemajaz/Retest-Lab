@@ -14,6 +14,7 @@
       },
       remove(id){items=items.filter(x=>x.id!==id);},
       clear(){items=[];},
+      replace(validated){items=copy(validated);},
       list(){return copy(items);},
       csv(){
         const rows=[header];
