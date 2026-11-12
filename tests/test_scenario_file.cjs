@@ -1,0 +1,15 @@
+const test=require('node:test'),assert=require('node:assert/strict');const f=require('../scenario_file.js'),g=require('../geometry.js'),{createBook}=require('../comparison.js');
+const make=(direction='long')=>g.calculate({direction,entry:'100',stop:direction==='long'?'98.8':'101.2',tick:'0.01',rs:['0.6','1','1.5','2']});
+const valid=()=>({format:'retest-lab-comparison',version:1,scenarios:[{id:'A',direction:'long',entry:'100',stop:'98.8',tick:'0.01',rs:['0.6','1','1.5','2']}]});
+test('round trip recalculates long and short',()=>{const b=createBook();b.add(make());b.add(make('short'));assert.deepEqual(f.parse(f.serialize(b.list()),g.calculate),b.list())});
+test('preserves order and labels with a gap',()=>{const b=createBook();b.add(make());b.add(make());b.add(make('short'));b.remove('B');assert.deepEqual(f.parse(f.serialize(b.list()),g.calculate).map(x=>x.id),['A','C'])});
+test('replacement detaches snapshots',()=>{const b=createBook(),a=f.parse(JSON.stringify(valid()),g.calculate);b.replace(a);a[0].result.targets[0]='0';assert.equal(b.list()[0].result.targets[0],'100.72')});
+test('ignores untrusted calculated values',()=>{let a=valid();a.scenarios[0].targets=['999'];assert.equal(f.parse(JSON.stringify(a),g.calculate)[0].result.targets[0],'100.72')});
+test('rejects invalid JSON',()=>assert.throws(()=>f.parse('{',g.calculate),/JSON/));
+test('rejects oversized text',()=>assert.throws(()=>f.parse('x'.repeat(16385),g.calculate),/16 KB/));
+test('rejects wrong version and format',()=>{let a=valid();a.version=2;assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/Unsupported/);a.version=1;a.format='other';assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/Unsupported/)});
+test('rejects empty and oversized sets',()=>{let a=valid();a.scenarios=[];assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/count/);a.scenarios=[1,2,3,4];assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/count/)});
+test('rejects duplicate or unknown labels',()=>{let a=valid();a.scenarios.push(a.scenarios[0]);assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/labels/);a.scenarios=[{...a.scenarios[0],id:'D'}];assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/labels/)});
+test('rejects types and malformed inputs',()=>{let a=valid();a.scenarios[0].entry=100;assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/inputs/);a=valid();a.scenarios[0].stop='101';assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/Scenario A/)});
+test('rejects malformed R array and direction',()=>{let a=valid();a.scenarios[0].rs=['1'];assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/inputs/);a=valid();a.scenarios[0].direction='other';assert.throws(()=>f.parse(JSON.stringify(a),g.calculate),/inputs/)});
+test('serialize requires one to three',()=>{assert.throws(()=>f.serialize([]),/between/);assert.throws(()=>f.serialize(Array(4)),/between/)});
