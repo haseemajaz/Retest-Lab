@@ -1,0 +1,6 @@
+index,field,value
+20,events,armed_long
+20,entry,100.00
+20,stop,98.80
+21,events,modeled_fill
+22,events,target_1|target_2|target_3|target_4
