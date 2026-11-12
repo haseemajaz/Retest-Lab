@@ -1,6 +1,6 @@
 # Retest Lab — TradingView acceptance and feature plan
 
-Status: pending. This is a test protocol, not an assertion that v0.3 has compiled, matched the reference, or produced profitable trades. The v0.3.1 package contains the unchanged v0.3 Pine script. See [VALIDATION.md](VALIDATION.md) for completed checks.
+Status: pending. This is a test protocol, not an assertion that v0.3 has compiled, matched the reference, or produced profitable trades. The v0.8.0 package contains the unchanged v0.3 Pine script. See [VALIDATION.md](VALIDATION.md) for completed checks.
 
 ## Prerequisites and safety
 - Use a standard time-based candlestick chart, not Heikin Ashi or other synthetic bars. Record the ticker and exchange/feed, timeframe, tick size, chart session, chart timezone, the indicator's session timezone and every non-default input. Different feeds or adjustment settings can produce different bars and volume.
@@ -40,10 +40,13 @@ The following were evaluated against the Python reference using default settings
 - **Long:** breakout bar O=99.5 H=102 L=99 C=101.8, prior high=100, prior low=95, prior ATR=2 → armed long at 100, stop 98.8, targets 100.72 / 101.20 / 101.80 / 102.40. Next bar O=100.4 H=100.5 L=100 C=100.2 → modeled fill. A subsequent bar O=101 H=102.5 L=97 C=101 → stop only, not targets.
 - **Short:** breakout bar O=100.5 H=101 L=98 C=98.2, prior high=105, prior low=100, prior ATR=2 → armed short at 100, stop 101.2, targets 99.28 / 98.80 / 98.20 / 97.60. Next bar O=99.5 H=100 L=99 C=99.3 → modeled fill. A subsequent bar O=99 H=100 L=97 C=98 → target 1–4 and idle.
 
+## Capture aid available
+`REPLAY_CAPTURE.md` provides a guided evidence template. `python -m reference.compare_trace` compares manually recorded cells with the Python trace and flags differences. This tool does not observe a chart or check unrecorded fields; its synthetic examples are not Pine tests.
+
 ## Candidate future improvements — not implemented
 1. **First:** complete compilation, alert checks and recorded replay cases above; repair any differences before adding decision logic.
 2. **Better diagnostics:** a compact on-chart explanation of which enabled filter rejected a breakout, subject to Pine execution and display limits.
 3. **Session visibility:** optional display of configured session windows and reset boundaries, with clear timezone labels.
-4. **Comparison support:** more hand-checked edge-case fixtures and a guided format for capturing matching TradingView inputs. Existing Python traces are not independent validation.
+4. **Comparison support:** additional independently checked edge-case fixtures. The guided capture format and selected-cell comparison are available, but Python traces and synthetic examples are not independent validation.
 
 These are ideas, not tested features. No requested future feature implies a win-rate improvement or trade recommendation.
