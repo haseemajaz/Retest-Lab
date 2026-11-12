@@ -1,0 +1,12 @@
+const test=require('node:test'),assert=require('node:assert/strict'),{createBook}=require('../comparison.js'),{calculate}=require('../geometry.js');
+const make=(d='long')=>calculate({direction:d,entry:'100',stop:d==='long'?'98.8':'101.2',tick:'0.01',rs:['0.6','1','1.5','2']});
+test('initial state cannot undo',()=>{const b=createBook();assert.equal(b.canUndo(),false);assert.equal(b.undo(),false)});
+test('undo addition to empty',()=>{const b=createBook();b.add(make());assert.equal(b.undo(),true);assert.deepEqual(b.list(),[]);assert.equal(b.canUndo(),false)});
+test('undo removal retains order and contents',()=>{const b=createBook();b.add(make());b.add(make('short'));const before=b.list();b.remove('A');assert.equal(b.undo(),true);assert.deepEqual(b.list(),before)});
+test('undo confirmed clear',()=>{const b=createBook();b.add(make());b.add(make('short'));const before=b.list();b.clear();assert.equal(b.list().length,0);b.undo();assert.deepEqual(b.list(),before)});
+test('undo replace returns old snapshots',()=>{const b=createBook();b.add(make());const before=b.list();b.replace([{id:'C',result:make('short')}]);b.undo();assert.deepEqual(b.list(),before)});
+test('undo replace into empty restores empty',()=>{const b=createBook();b.replace([{id:'C',result:make()}]);b.undo();assert.deepEqual(b.list(),[])});
+test('only last change can be undone',()=>{const b=createBook();b.add(make());b.add(make());b.remove('A');b.undo();assert.deepEqual(b.list().map(x=>x.id),['A','B']);assert.equal(b.undo(),false)});
+test('no-op remove and empty clear preserve undo',()=>{const b=createBook();b.add(make());b.remove('Z');b.undo();assert.deepEqual(b.list(),[]);b.add(make());b.clear();b.clear();b.undo();assert.equal(b.list().length,1)});
+test('failed add does not replace prior undo',()=>{const b=createBook();b.add(make());assert.throws(()=>b.add(null));b.undo();assert.equal(b.list().length,0)});
+test('new change after undo gets new checkpoint',()=>{const b=createBook();b.add(make());b.add(make('short'));b.undo();b.add(make());b.undo();assert.equal(b.list().length,1)});
