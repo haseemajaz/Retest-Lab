@@ -1,3 +1,17 @@
+test_blank_observation_is_present_not_unknown (test_compare_trace.ChecklistTests.test_blank_observation_is_present_not_unknown) ... ok
+test_checklist_does_not_mask_difference (test_compare_trace.ChecklistTests.test_checklist_does_not_mask_difference) ... ok
+test_complete_checklist (test_compare_trace.ChecklistTests.test_complete_checklist) ... ok
+test_coverage_summary (test_compare_trace.ChecklistTests.test_coverage_summary) ... ok
+test_duplicate_checklist_rejected (test_compare_trace.ChecklistTests.test_duplicate_checklist_rejected) ... ok
+test_empty_checklist_rejected (test_compare_trace.ChecklistTests.test_empty_checklist_rejected) ... ok
+test_empty_observations_report_all_missing (test_compare_trace.ChecklistTests.test_empty_observations_report_all_missing) ... ok
+test_extra_header_rejected (test_compare_trace.ChecklistTests.test_extra_header_rejected) ... ok
+test_extra_observations_still_compared (test_compare_trace.ChecklistTests.test_extra_observations_still_compared) ... ok
+test_large_missing_is_bounded (test_compare_trace.ChecklistTests.test_large_missing_is_bounded) ... ok
+test_missing_checklist_cell (test_compare_trace.ChecklistTests.test_missing_checklist_cell) ... ok
+test_no_input_writes (test_compare_trace.ChecklistTests.test_no_input_writes) ... ok
+test_unknown_checklist_field_rejected (test_compare_trace.ChecklistTests.test_unknown_checklist_field_rejected) ... ok
+test_unknown_checklist_index_rejected (test_compare_trace.ChecklistTests.test_unknown_checklist_index_rejected) ... ok
 test_blank_does_not_match_number (test_compare_trace.CompareTests.test_blank_does_not_match_number) ... ok
 test_command_exit_codes_and_read_only (test_compare_trace.CompareTests.test_command_exit_codes_and_read_only) ... ok
 test_decimal_equivalence (test_compare_trace.CompareTests.test_decimal_equivalence) ... ok
@@ -97,6 +111,6 @@ test_short_pass_fail_equal_and_missing (test_engine.VWAPTests.test_short_pass_fa
 test_vwap_off_needs_no_input (test_engine.VWAPTests.test_vwap_off_needs_no_input) ... ok
 
 ----------------------------------------------------------------------
-Ran 97 tests in 0.516s
+Ran 111 tests in 0.744s
 
 OK
