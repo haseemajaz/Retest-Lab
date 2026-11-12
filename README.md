@@ -1,8 +1,13 @@
-# Retest Lab v0.6.1 — experimental research prototype
+# Retest Lab v0.7.0 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.6.1: safer comparison changes
+## New in v0.7.0: optional price ladder
+After calculating an example, expand **Price ladder** to see stop, entry and the four rounded targets ordered from highest price to lowest. For a long example targets appear above entry and stop below; for a short example stop appears above entry and targets below. The ladder is an ordered table, **not to scale**; spacing does not show price distance. It is not a signal, forecast, order or proof of a fill. It uses the same calculated values already shown and does not change geometry, CSV or comparison-file formats.
+
+70 JavaScript tests (30 geometry, 10 comparison, 12 file validation, 10 undo, 8 ladder) and 79 Python reference/CLI tests passed on synthetic data. Local browser checks covered long and short ordering, loading saved examples, invalidation, large prices and fine ticks, mobile/dark layout and no calculator network requests. Market performance and execution were not tested.
+
+## v0.6.1: safer comparison changes
 **Clear comparison** now asks for confirmation. **Undo comparison change** reverses the most recent addition, individual removal, confirmed clear or file restore, including its scenario labels and order. Undo affects the comparison only, not the editable form; it is one step, with no redo. The next comparison change replaces the previous undo point. Cancelling a clear or a restore does not change the comparison. The undo point disappears on refresh, navigation or close, so it is not a backup: use **Save comparison file** before leaving.
 
 62 JavaScript tests (30 geometry, 10 comparison, 12 file validation, 10 undo) and 79 Python reference/CLI tests passed on synthetic inputs. Local browser checks covered undoing addition, removal, clearing and restore, clear confirmation and cancellation, form isolation, invalid files, refresh, mobile/dark display, and no calculator network requests. These checks do not establish trading performance or execution.
@@ -68,4 +73,4 @@ On a confirmed breakout bar, close strictly breaks the preceding 20-bar high/low
 79 Python reference and CLI tests passed on synthetic inputs. Python receives precomputed range, ATR, EMA, VWAP and volume; it neither compiles Pine nor proves parity or profitability. v0.2 compiled on AAPL 1D and advanced five replay bars; v0.3 has **not** been compiled, replayed, or alert-tested in TradingView due to the account's occupied chart slots. No cross-market evaluation, forward paper study or independently verified performance. See `VALIDATION.md`. For a detailed online checklist and candidate features, see [TEST_PLAN.md](TEST_PLAN.md).
 
 ## Local tests
-`python -m unittest discover -s tests -v` (Python 3.10+, standard library); `node --test tests/test_geometry.cjs tests/test_comparison.cjs tests/test_scenario_file.cjs tests/test_comparison_undo.cjs` (Node 18+). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
+`python -m unittest discover -s tests -v` (Python 3.10+, standard library); `node --test tests/test_geometry.cjs tests/test_comparison.cjs tests/test_scenario_file.cjs tests/test_comparison_undo.cjs tests/test_ladder.cjs` (Node 18+). The site embeds ZIP and DOCX in its HTML because GitHub's upload UI rejected binary uploads; it reconstructs the files in your browser. Pine and reference/test source are readable in the repository. See `SOURCES.md` for video evidence and `LICENSE` for project terms.
