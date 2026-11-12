@@ -1,8 +1,13 @@
-# Retest Lab v0.8.0 — experimental research prototype
+# Retest Lab v0.9.0 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.8.0: guided replay comparison
+## New in v0.9.0: observation coverage and checklist
+The offline comparator now summarizes which trace bars and fields have observations. Optionally pass `--required checklist.csv` to report specifically planned index/field pairs that were not recorded. Missing planned cells or differences return exit status 1. The checklist is user-defined: it cannot determine whether the plan is complete or whether observations are correct. Do not invent observations to satisfy it. It does not run Pine or establish parity, execution or profitability. See [REPLAY_CAPTURE.md](REPLAY_CAPTURE.md).
+
+111 Python tests and 70 JavaScript tests passed on synthetic data. Pine is unchanged and not newly validated. TradingView compile, replay and realtime alerts remain pending; see [VALIDATION.md](VALIDATION.md).
+
+## v0.8.0: guided replay comparison
 Use `REPLAY_CAPTURE.md` to record a chart's provenance, settings, bar mapping and observations. The offline `reference.compare_trace` command compares only manually recorded `index,field,value` cells with a Python trace, reports differences without writing either input and detects malformed/duplicate entries. Numeric values compare as exact decimals. Unrecorded cells are not checked. Two hand-written synthetic examples illustrate long and short cases. No chart is accessed automatically and matching cells do not establish Pine parity, execution or profitability. See [REPLAY_CAPTURE.md](REPLAY_CAPTURE.md).
 
 97 Python tests and 70 JavaScript tests passed on synthetic inputs. Pine was not changed or newly validated. TradingView compile, replay and realtime alert checks remain pending; see [VALIDATION.md](VALIDATION.md).
