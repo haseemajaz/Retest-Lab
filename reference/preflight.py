@@ -64,7 +64,7 @@ def main(argv=None):
     args = p.parse_args(argv)
     try:
         count, warnings = inspect(args.input, args.config)
-    except (OSError, UnicodeError, ValueError, TypeError, csv.Error, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeError, ValueError, TypeError, OverflowError, csv.Error, json.JSONDecodeError) as exc:
         print(f'Preflight error: {exc}', file=sys.stderr); return 2
     print(f'Validated {count} bar(s) with the Python trace model; {len(warnings)} warning category(s).')
     for message, indexes in warnings:
