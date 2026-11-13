@@ -18,6 +18,14 @@ Copy this section for each run and fill it from the actual chart, leaving unknow
 
 The Python trace starts idle and only accepts consecutive confirmed bars. Prepare OHLC and prior values from the same feed, timeframes, session and indicator settings, including enough history for matching state. The comparison cannot check whether these assumptions were met. Record errors and preserve mismatches rather than altering evidence to force a match.
 
+## Preflight prepared bars
+
+Before generating a trace, run `python -m reference.preflight your_bars.csv --config your_config.json` (omit `--config` to use defaults). It reads the CSV and config without changing either, validates inputs using the same Python model as the trace, and reports counts and up to five affected indexes per warning category. It flags omitted or blank `in_session` and `confirmed` values, which the trace treats as true; missing timestamps or timestamps without timezone offsets; bars with all prior-range/ATR inputs blank or prior ATR zero, where breakout detection is skipped; and missing EMA, VWAP or volume inputs when the relevant filter is enabled. A zero prior volume average is also flagged when its filter is enabled. Filter warnings apply only on bars with prepared prior range and positive ATR. Invalid rows, including unconfirmed bars, stop the check with an error.
+
+Preflight exit codes are 0 for valid inputs (including warnings), 1 only when `--strict` is used and warnings exist, and 2 for invalid inputs or unreadable files. For example, `python -m reference.preflight sample_trace.csv --strict` reports expected synthetic gaps and exits 1. Review each warning in context rather than inventing data to clear it; blank prior values can be intentional during warm-up or when detection is deliberately not evaluated.
+
+This is not an independent test of the Python engine. It cannot verify source/feed, data accuracy, actual session membership, timezone mapping, enough warm-up, Pine parity, alerts, execution or profitability. A clean result does not prove any of these.
+
 ## Compare observations
 
 1. Generate a trace: `python -m reference.engine your_bars.csv --config your_config.json --output trace.csv`. Omit `--config` when using defaults. Do not overwrite evidence. Trace inputs and columns are described in `README.md`.
