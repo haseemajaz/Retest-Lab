@@ -69,7 +69,7 @@ class PreflightTests(unittest.TestCase):
     def test_bounded_index_examples(self):
         rows=[make_row(i) for i in range(20,27)]
         for r in rows:r['in_session']=''
-        self.write(rows);out=self.run_cli().stdout;self.assertIn('indexes: 20, 21, 22, 23, 24, ...',out);self.assertNotIn('24, 25',out)
+        self.write(rows);out=self.run_cli().stdout;line=next(x for x in out.splitlines() if 'in_session blank' in x);self.assertIn('indexes: 20, 21, 22, 23, 24, ...',line);self.assertNotIn('24, 25',line)
     def test_malformed_utf8_cli(self):
         self.bars.write_bytes(b'\xff');self.assertEqual(self.run_cli().returncode,2)
     def test_sample_is_honestly_warned(self):
