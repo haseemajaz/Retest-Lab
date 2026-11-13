@@ -15,6 +15,17 @@
     if (!digits) return whole.toString();
     return whole + '.' + (value % SCALE).toString().padStart(8, '0').slice(0, digits);
   }
+  // Neighbouring valid ticks only; never changes an input or recommends a price.
+  function alignment(value, tickValue) {
+    const price = parse(value, 'Price').value;
+    const tickData = parse(tickValue, 'Tick size');
+    const tick = tickData.value;
+    if (price > MAX_PRICE || tick <= 0n || tick > MAX_PRICE) throw new Error('Price or tick is outside the supported range.');
+    if (price % tick === 0n) return null;
+    const lower = (price / tick) * tick;
+    const upper = lower + tick;
+    return { lower: format(lower, tickData.digits), upper: upper <= MAX_PRICE ? format(upper, tickData.digits) : null };
+  }
   function calculate(input) {
     if (!input || !['long', 'short'].includes(input.direction)) throw new Error('Choose long or short.');
     const entry = parse(input.entry, 'Entry').value;
@@ -60,7 +71,7 @@
       targetTicks: targetTicks.map(t => t.toString()), achievedR, roundingChanged
     };
   }
-  const api = { calculate };
+  const api = { calculate, alignment };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.RetestGeometry = api;
 })(typeof globalThis === 'undefined' ? this : globalThis);
