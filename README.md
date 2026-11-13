@@ -1,8 +1,13 @@
-# Retest Lab v0.9.0 — experimental research prototype
+# Retest Lab v0.10.0 — experimental research prototype
 
 An independent, editable TradingView Pine v6 displacement-and-retest indicator and Python reference. Not Auction Retest Pro, its private code, a broker bot, a performance backtest, or a trading recommendation. Trading involves loss; use paper observation first.
 
-## New in v0.9.0: observation coverage and checklist
+## New in v0.10.0: trace input preflight
+Before generating a reference trace, run `python -m reference.preflight your_bars.csv --config your_config.json` (omit `--config` for defaults). The read-only check uses the same Python trace model to validate inputs and flags blank session/confirmation values that default to true, missing or timezone-naive timestamps, skipped detection due to blank prior inputs or zero ATR, and missing enabled-filter values. `--strict` returns status 1 when warnings exist; invalid input returns 2. A warning can be expected (for example, warm-up), but it needs review. The check cannot establish feed accuracy, sufficient warm-up, correct timezone mapping, Pine parity or trading performance. See [REPLAY_CAPTURE.md](REPLAY_CAPTURE.md).
+
+137 Python tests and 70 JavaScript tests passed on synthetic inputs. Pine is unchanged and not newly validated; TradingView compile, replay and alerts remain pending. See [VALIDATION.md](VALIDATION.md).
+
+## v0.9.0: observation coverage and checklist
 The offline comparator now summarizes which trace bars and fields have observations. Optionally pass `--required checklist.csv` to report specifically planned index/field pairs that were not recorded. Missing planned cells or differences return exit status 1. The checklist is user-defined: it cannot determine whether the plan is complete or whether observations are correct. Do not invent observations to satisfy it. It does not run Pine or establish parity, execution or profitability. See [REPLAY_CAPTURE.md](REPLAY_CAPTURE.md).
 
 111 Python tests and 70 JavaScript tests passed on synthetic data. Pine is unchanged and not newly validated. TradingView compile, replay and realtime alerts remain pending; see [VALIDATION.md](VALIDATION.md).
