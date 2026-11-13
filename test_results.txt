@@ -109,8 +109,34 @@ test_stop_before_confirmation (test_engine.V3FeatureTests.test_stop_before_confi
 test_long_pass_fail_equal_and_missing (test_engine.VWAPTests.test_long_pass_fail_equal_and_missing) ... ok
 test_short_pass_fail_equal_and_missing (test_engine.VWAPTests.test_short_pass_fail_equal_and_missing) ... ok
 test_vwap_off_needs_no_input (test_engine.VWAPTests.test_vwap_off_needs_no_input) ... ok
+test_bad_row_error (test_preflight.PreflightTests.test_bad_row_error) ... ok
+test_blank_timestamp (test_preflight.PreflightTests.test_blank_timestamp) ... ok
+test_bounded_index_examples (test_preflight.PreflightTests.test_bounded_index_examples) ... ok
+test_cli_statuses (test_preflight.PreflightTests.test_cli_statuses) ... ok
+test_duplicate_header_error (test_preflight.PreflightTests.test_duplicate_header_error) ... ok
+test_empty_error (test_preflight.PreflightTests.test_empty_error) ... ok
+test_filter_warnings_ignore_unprepared (test_preflight.PreflightTests.test_filter_warnings_ignore_unprepared) ... ok
+test_fully_specified_no_warning (test_preflight.PreflightTests.test_fully_specified_no_warning) ... ok
+test_invalid_config_error (test_preflight.PreflightTests.test_invalid_config_error) ... ok
+test_invalid_ohlc_error (test_preflight.PreflightTests.test_invalid_ohlc_error) ... ok
+test_malformed_utf8_cli (test_preflight.PreflightTests.test_malformed_utf8_cli) ... ok
+test_missing_columns_reported (test_preflight.PreflightTests.test_missing_columns_reported) ... ok
+test_missing_ema_enabled (test_preflight.PreflightTests.test_missing_ema_enabled) ... ok
+test_missing_flag_defaults_reported (test_preflight.PreflightTests.test_missing_flag_defaults_reported) ... ok
+test_missing_volume_pair_enabled (test_preflight.PreflightTests.test_missing_volume_pair_enabled) ... ok
+test_missing_vwap_enabled (test_preflight.PreflightTests.test_missing_vwap_enabled) ... ok
+test_naive_timestamp (test_preflight.PreflightTests.test_naive_timestamp) ... ok
+test_nonconsecutive_indexes_error (test_preflight.PreflightTests.test_nonconsecutive_indexes_error) ... ok
+test_offset_timestamp (test_preflight.PreflightTests.test_offset_timestamp) ... ok
+test_partial_prior_error (test_preflight.PreflightTests.test_partial_prior_error) ... ok
+test_read_only (test_preflight.PreflightTests.test_read_only) ... ok
+test_sample_is_honestly_warned (test_preflight.PreflightTests.test_sample_is_honestly_warned) ... ok
+test_unconfirmed_error (test_preflight.PreflightTests.test_unconfirmed_error) ... ok
+test_unprepared_values (test_preflight.PreflightTests.test_unprepared_values) ... ok
+test_zero_atr (test_preflight.PreflightTests.test_zero_atr) ... ok
+test_zero_prior_volume (test_preflight.PreflightTests.test_zero_prior_volume) ... ok
 
 ----------------------------------------------------------------------
-Ran 111 tests in 0.744s
+Ran 137 tests in 1.366s
 
 OK
