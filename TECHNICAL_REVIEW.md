@@ -1,4 +1,4 @@
-# Technical review — Retest Lab v0.11.0
+# Technical review — Retest Lab v0.12.0
 
 Review date: 2026-11-13. Scope: source inspection of the Pine prototype, Python reference and trace tools, standalone calculator and its local comparison file, package structure and user-facing interface; synthetic automated tests and local browser checks. This is not a security certification, live market study, TradingView parity test or proof of profitability.
 
@@ -6,6 +6,9 @@ Review date: 2026-11-13. Scope: source inspection of the Pine prototype, Python 
 
 | Area | Finding | Action / remaining boundary |
 |---|---|---|
+| Input integrity | Trace CSV could silently treat some truncated trailing fields as blank; JSON duplicate keys used the last value. | Reject malformed row lengths and duplicate configuration keys. Explicitly blank CSV fields remain valid when permitted. |
+| Timestamp order | Valid ISO timestamps could be repeated or backwards while index order remained consecutive. | Preflight warns for adjacent offset-aware instants that repeat or decrease. Blank or naive timestamps break the chain. Trace execution does not enforce time order; cadence, chart mapping and session correctness remain unverified. |
+| Tick alignment usability | A generic alignment error did not show what could be changed. | The calculator displays adjacent lower/higher aligned values without editing the form or recommending a choice. Other constraints and market tick rules still apply. |
 | Trace file safety | Earlier trace exports replaced an existing output without a prompt; an output hard-linked to an input could also overwrite evidence. | New files are created without clobbering. Existing regular output files require explicit `--force`; input/config paths, aliases and output symlinks are refused. Temporary output is written first. The no-clobber publish step uses a hard link in the destination directory and can fail on filesystems that do not support it. |
 | Python validation | Some direct model constraints used `assert`, which disappears under `python -O`. | Constraints and direct OHLC validation use explicit errors. Optimized-mode and malformed CSV/encoding tests were added. |
 | Reference tick precision | The Python reference rounds to ten decimal places. A finer configured tick could silently collapse values. | Config now rejects ticks that cannot be represented to ten decimal places. This does **not** make binary-float rounding equivalent to Pine at all magnitudes or boundaries. Compare matched chart examples, particularly half ticks. |
@@ -26,6 +29,6 @@ Review date: 2026-11-13. Scope: source inspection of the Pine prototype, Python 
 ## Reproduce local checks
 
 - `python -m unittest discover -s tests -v` (Python 3.10+). The decimal oracle test is skipped if Node is unavailable; the core Python tools otherwise use the standard library only.
-- `node --test tests/test_geometry.cjs tests/test_comparison.cjs tests/test_scenario_file.cjs tests/test_comparison_undo.cjs tests/test_ladder.cjs` (Node 18+).
+- `node --test tests/*.cjs` (Node 18+).
 - `python -m reference.preflight sample_trace.csv --strict` intentionally reports sample assumptions and exits 1. It uses the same Python model, not an independent verification.
 - `sha256sum -c SHA256SUMS` from the extracted package on systems with that utility. Hashes identify bundled bytes, not publisher identity.
