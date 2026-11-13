@@ -41,6 +41,19 @@ def inspect(path, config_path=None):
     warn('confirmed blank or absent: trace assumes true', [r for r in rows if blank(r.get('confirmed'))])
     warn('timestamp blank or absent: chart-bar mapping cannot be checked', [r for r in rows if blank(r.get('timestamp'))])
     warn('timestamp has no timezone offset: mapping can be ambiguous', [r for r in rows if not blank(r.get('timestamp')) and datetime.fromisoformat(r['timestamp'].strip().replace('Z', '+00:00')).utcoffset() is None])
+    # Compare only adjacent rows with two offset-aware timestamps. A blank or
+    # naive value breaks the chain; do not invent a timezone or expected cadence.
+    repeated, reversed_time = [], []
+    for previous, current in zip(rows, rows[1:]):
+        a, b = previous.get('timestamp'), current.get('timestamp')
+        if blank(a) or blank(b): continue
+        first = datetime.fromisoformat(a.strip().replace('Z', '+00:00'))
+        second = datetime.fromisoformat(b.strip().replace('Z', '+00:00'))
+        if first.utcoffset() is None or second.utcoffset() is None: continue
+        if second == first: repeated.append(current)
+        elif second < first: reversed_time.append(current)
+    warn('adjacent offset-aware timestamps repeat the same instant', repeated)
+    warn('adjacent offset-aware timestamps go backwards', reversed_time)
     unprepared = [r for r in rows if blank(r.get('prior_atr'))]
     warn('prior high/low/ATR blank: breakout detection is skipped', unprepared)
     zero_atr = [r for r in rows if not blank(r.get('prior_atr')) and float(r['prior_atr']) == 0]
