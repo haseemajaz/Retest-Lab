@@ -191,7 +191,13 @@ def load_config(path=None):
     from dataclasses import fields
     from math import isfinite
     if path is None: return Config()
-    with open(path, encoding='utf-8') as f: data = json.load(f)
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result: raise ValueError(f'duplicate config key: {key}')
+            result[key] = value
+        return result
+    with open(path, encoding='utf-8') as f: data = json.load(f, object_pairs_hook=unique_object)
     if not isinstance(data, dict): raise ValueError('config must be a JSON object')
     unknown = set(data) - {f.name for f in fields(Config)}
     if unknown: raise ValueError('unknown config keys: ' + ', '.join(sorted(unknown)))
@@ -222,7 +228,8 @@ def trace_rows(rows, cfg=None):
     previous_index = previous_day = None
     output = []
     for i, row in enumerate(rows, 2):
-        if None in row: raise ValueError(f'row {i}: too many CSV fields')
+        if None in row or any(value is None for value in row.values()):
+            raise ValueError(f'row {i}: malformed CSV row (wrong number of fields)')
         raw_index = (row.get('index') or '').strip()
         if not raw_index.isdigit(): raise ValueError(f'row {i}: index must be a nonnegative integer')
         index = int(raw_index)
