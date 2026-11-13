@@ -34,6 +34,16 @@ test_text_order_matters (test_compare_trace.CompareTests.test_text_order_matters
 test_unknown_field (test_compare_trace.CompareTests.test_unknown_field) ... ok
 test_unknown_index (test_compare_trace.CompareTests.test_unknown_index) ... ok
 test_unterminated_quote_rejected (test_compare_trace.CompareTests.test_unterminated_quote_rejected) ... ok
+test_ascending_different_offsets_no_warning (test_data_integrity.IntegrityTests.test_ascending_different_offsets_no_warning) ... ok
+test_backwards_instants_warn (test_data_integrity.IntegrityTests.test_backwards_instants_warn) ... ok
+test_blank_breaks_comparison_chain (test_data_integrity.IntegrityTests.test_blank_breaks_comparison_chain) ... ok
+test_duplicate_config_key_rejected_in_cli (test_data_integrity.IntegrityTests.test_duplicate_config_key_rejected_in_cli) ... ok
+test_embedded_geometry_matches_source (test_data_integrity.IntegrityTests.test_embedded_geometry_matches_source) ... ok
+test_explicit_blank_cells_are_valid (test_data_integrity.IntegrityTests.test_explicit_blank_cells_are_valid) ... ok
+test_naive_breaks_comparison_chain (test_data_integrity.IntegrityTests.test_naive_breaks_comparison_chain) ... ok
+test_repeated_instants_across_offsets_warn (test_data_integrity.IntegrityTests.test_repeated_instants_across_offsets_warn) ... ok
+test_short_row_rejected_even_when_trailing_optional (test_data_integrity.IntegrityTests.test_short_row_rejected_even_when_trailing_optional) ... ok
+test_strict_timestamp_warning_status (test_data_integrity.IntegrityTests.test_strict_timestamp_warning_status) ... ok
 test_close_edge_rejected (test_engine.DetectionTests.test_close_edge_rejected) ... ok
 test_direction_disabled (test_engine.DetectionTests.test_direction_disabled) ... ok
 test_long_geometry (test_engine.DetectionTests.test_long_geometry) ... ok
@@ -162,6 +172,6 @@ test_too_fine_tick_rejected (test_trace_safety.TraceSafetyTests.test_too_fine_ti
 test_unterminated_quote_reported (test_trace_safety.TraceSafetyTests.test_unterminated_quote_reported) ... ok
 
 ----------------------------------------------------------------------
-Ran 162 tests in 2.270s
+Ran 172 tests in 3.046s
 
 OK
