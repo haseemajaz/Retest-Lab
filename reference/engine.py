@@ -3,7 +3,8 @@ ATR and prior rolling levels are supplied by caller. Pine is the chart runtime.
 Python >=3.10; standard library only. See tests for synthetic examples.
 """
 from dataclasses import dataclass, field
-from math import floor
+from math import floor, isfinite
+from decimal import Decimal
 
 @dataclass(frozen=True)
 class Bar:
@@ -37,11 +38,33 @@ class Config:
     longs: bool = True
     shorts: bool = True
     def __post_init__(self):
-        assert 0 < self.edge < .5 and self.tick > 0 and self.body_mult > 0 and self.vol_mult > 0
-        assert 0 < self.min_risk <= self.max_risk and self.stop_buffer >= 0 and self.min_break_atr >= 0
-        assert self.expiry >= 1 and self.cooldown >= 0 and self.cap >= 1
-        assert len(self.targets) == 4 and 0 < self.targets[0]
-        assert all(a < b for a, b in zip(self.targets, self.targets[1:]))
+        # Explicit validation remains active under python -O; the CLI applies
+        # the same checks after parsing its JSON overrides.
+        floats = ('body_mult','edge','stop_buffer','min_risk','max_risk','tick','vol_mult','min_break_atr')
+        for name in floats:
+            value = getattr(self, name)
+            if type(value) not in (int, float) or not isfinite(value):
+                raise ValueError(f'{name} must be a finite number')
+        for name in ('expiry','cooldown','cap'):
+            if type(getattr(self, name)) is not int:
+                raise ValueError(f'{name} must be an integer')
+        for name in ('use_ema','use_volume','use_vwap','confirm_retest','longs','shorts'):
+            if type(getattr(self, name)) is not bool:
+                raise ValueError(f'{name} must be boolean')
+        if not (0 < self.edge < .5 and self.tick > 0 and self.body_mult > 0 and self.vol_mult > 0):
+            raise ValueError('invalid edge, tick, body or volume constraint')
+        # The reference rounds to ten decimal places. Refuse ticks it cannot
+        # faithfully represent rather than silently collapsing prices.
+        if Decimal(str(self.tick)).normalize().as_tuple().exponent < -10:
+            raise ValueError('tick must be representable at 10 decimal places or fewer')
+        if not (0 < self.min_risk <= self.max_risk and self.stop_buffer >= 0 and self.min_break_atr >= 0):
+            raise ValueError('invalid risk or breakout constraint')
+        if not (self.expiry >= 1 and self.cooldown >= 0 and self.cap >= 1):
+            raise ValueError('invalid expiry, cooldown or cap')
+        if not isinstance(self.targets, (tuple, list)) or len(self.targets) != 4:
+            raise ValueError('targets must contain four increasing finite numbers')
+        if any(type(x) not in (int, float) or not isfinite(x) for x in self.targets) or not (0 < self.targets[0]) or not all(a < b for a, b in zip(self.targets, self.targets[1:])):
+            raise ValueError('targets must contain four increasing finite numbers')
 
 @dataclass(frozen=True)
 class Setup:
@@ -99,7 +122,8 @@ class Engine:
     def step(self, b: Bar, candidate: Setup | None = None):
         if not b.confirmed:
             return []
-        assert b.low <= min(b.open, b.close) <= max(b.open, b.close) <= b.high
+        if not b.low <= min(b.open, b.close) <= max(b.open, b.close) <= b.high:
+            raise ValueError('invalid OHLC')
         events = []
         filled_this_bar = False
         new_day = self.day is not None and b.day != self.day
@@ -239,14 +263,24 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description='Trace prepared closed bars with the Retest Lab Python model; not a backtest or Pine validation.')
     parser.add_argument('input', help='input CSV with OHLC and prepared indicators')
     parser.add_argument('--config', help='optional JSON overrides for Python Config')
-    parser.add_argument('--output', help='output CSV (default stdout)')
+    parser.add_argument('--output', help='new output CSV (default stdout); existing files require --force')
+    parser.add_argument('--force', action='store_true', help='replace an existing regular output file, never input/config')
     args=parser.parse_args(argv)
     try:
-        if args.output and Path(args.input).resolve() == Path(args.output).resolve(): raise ValueError('output must not overwrite input')
-        if args.output and args.config and Path(args.config).resolve() == Path(args.output).resolve(): raise ValueError('output must not overwrite config')
+        if args.force and not args.output: raise ValueError('--force requires --output')
+        if args.output:
+            output = Path(args.output)
+            if output.is_symlink(): raise ValueError('output must not be a symlink')
+            for label, source in (('input', args.input), ('config', args.config)):
+                if source is None: continue
+                source_path = Path(source)
+                if output.resolve() == source_path.resolve() or (output.exists() and source_path.exists() and output.samefile(source_path)):
+                    raise ValueError(f'output must not overwrite {label}')
+            if output.exists() and not args.force: raise ValueError('output already exists; choose a new file or use --force')
+            if output.exists() and not output.is_file(): raise ValueError('output must be a regular file')
         cfg=load_config(args.config)
         with open(args.input, newline='', encoding='utf-8-sig') as f:
-            reader=csv.DictReader(f)
+            reader=csv.DictReader(f, strict=True)
             required={'index','day','open','high','low','close','prior_high','prior_low','prior_atr'}
             if not reader.fieldnames or not required.issubset(reader.fieldnames): raise ValueError('CSV missing required columns: '+', '.join(sorted(required-set(reader.fieldnames or []))))
             if len(reader.fieldnames) != len(set(reader.fieldnames)): raise ValueError('duplicate CSV headers')
@@ -254,12 +288,26 @@ def main(argv=None):
         if not result: raise ValueError('CSV has no bars')
         fields=list(result[0])
         if args.output:
-            with open(args.output,'w',newline='',encoding='utf-8') as f:
-                writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(result)
+            # Write beside the destination, then atomically link a new file or
+            # replace only when explicitly requested. The link step fails if a
+            # file appeared concurrently; it never clobbers that file.
+            import os, tempfile
+            fd, temp_name = tempfile.mkstemp(prefix='.retest-trace-', suffix='.tmp', dir=output.parent)
+            try:
+                with os.fdopen(fd, 'w', newline='', encoding='utf-8') as f:
+                    writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(result)
+                if output.is_symlink(): raise ValueError('output must not be a symlink')
+                if args.force:
+                    if output.exists() and not output.is_file(): raise ValueError('output must be a regular file')
+                    os.replace(temp_name, output)
+                else:
+                    os.link(temp_name, output)
+            finally:
+                if os.path.exists(temp_name): os.unlink(temp_name)
         else:
             writer=csv.DictWriter(sys.stdout,fieldnames=fields);writer.writeheader();writer.writerows(result)
         return 0
-    except (OSError,ValueError,TypeError,json.JSONDecodeError) as exc:
+    except (OSError,ValueError,TypeError,UnicodeError,OverflowError,csv.Error,json.JSONDecodeError) as exc:
         print('Trace error: '+str(exc),file=sys.stderr);return 2
 
 if __name__ == '__main__':
