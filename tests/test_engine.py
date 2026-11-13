@@ -75,7 +75,7 @@ class DetectionTests(unittest.TestCase):
     def test_wrong_side_stop_rejected(self):
         self.assertIsNone(detect(Bar(20,'d',101,104,100.5,103.8),100,95,2,Config()))
     def test_targets_must_be_increasing(self):
-        with self.assertRaises(AssertionError): Config(targets=(1,.6,1.5,2))
+        with self.assertRaises(ValueError): Config(targets=(1,.6,1.5,2))
     def test_tick_collapsed_targets_rejected(self):
         self.assertIsNone(detect(Bar(20,'d',99.5,102,99,101.8),100,95,2,Config(tick=1, targets=(.1,.2,.3,.4))))
     def test_direction_disabled(self):
@@ -119,7 +119,7 @@ class V3FeatureTests(unittest.TestCase):
     def test_min_break_equality(self):
         self.assertIsNotNone(detect(Bar(20,'d',99.5,102,99,102),100,95,2,Config(min_break_atr=1)))
     def test_negative_break_rejected(self):
-        with self.assertRaises(AssertionError): Config(min_break_atr=-1)
+        with self.assertRaises(ValueError): Config(min_break_atr=-1)
     def test_confirm_long_waits_and_then_fills(self):
         e=Engine(Config(confirm_retest=True));e.step(b(0),L)
         self.assertEqual(e.step(b(1,99,101,close=99.5)),[])
