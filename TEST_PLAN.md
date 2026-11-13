@@ -1,6 +1,6 @@
 # Retest Lab — TradingView acceptance and feature plan
 
-Status: pending. This is a test protocol, not an assertion that v0.3 has compiled, matched the reference, or produced profitable trades. The v0.11.0 package contains the unchanged v0.3 Pine script. See [VALIDATION.md](VALIDATION.md) for completed checks.
+Status: pending. This is a test protocol, not an assertion that v0.3 has compiled, matched the reference, or produced profitable trades. The v0.12.0 package contains the unchanged v0.3 Pine script. See [VALIDATION.md](VALIDATION.md) for completed checks.
 
 ## Prerequisites and safety
 - Use a standard time-based candlestick chart, not Heikin Ashi or other synthetic bars. Record the ticker and exchange/feed, timeframe, tick size, chart session, chart timezone, the indicator's session timezone and every non-default input. Different feeds or adjustment settings can produce different bars and volume.
