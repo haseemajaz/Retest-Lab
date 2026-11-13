@@ -1,3 +1,7 @@
+test_embeds_exact_bytes_and_names (test_build_site.SiteBuildTests.test_embeds_exact_bytes_and_names) ... ok
+test_never_overwrites_existing_output (test_build_site.SiteBuildTests.test_never_overwrites_existing_output) ... ok
+test_refuses_existing_input_as_output (test_build_site.SiteBuildTests.test_refuses_existing_input_as_output) ... ok
+test_refuses_invalid_archive (test_build_site.SiteBuildTests.test_refuses_invalid_archive) ... ok
 test_blank_observation_is_present_not_unknown (test_compare_trace.ChecklistTests.test_blank_observation_is_present_not_unknown) ... ok
 test_checklist_does_not_mask_difference (test_compare_trace.ChecklistTests.test_checklist_does_not_mask_difference) ... ok
 test_complete_checklist (test_compare_trace.ChecklistTests.test_complete_checklist) ... ok
@@ -109,6 +113,7 @@ test_stop_before_confirmation (test_engine.V3FeatureTests.test_stop_before_confi
 test_long_pass_fail_equal_and_missing (test_engine.VWAPTests.test_long_pass_fail_equal_and_missing) ... ok
 test_short_pass_fail_equal_and_missing (test_engine.VWAPTests.test_short_pass_fail_equal_and_missing) ... ok
 test_vwap_off_needs_no_input (test_engine.VWAPTests.test_vwap_off_needs_no_input) ... ok
+test_1200_seeded_long_and_short_examples (test_geometry_oracle.DecimalOracleTests.test_1200_seeded_long_and_short_examples) ... ok
 test_bad_row_error (test_preflight.PreflightTests.test_bad_row_error) ... ok
 test_blank_timestamp (test_preflight.PreflightTests.test_blank_timestamp) ... ok
 test_bounded_index_examples (test_preflight.PreflightTests.test_bounded_index_examples) ... ok
@@ -135,8 +140,28 @@ test_unconfirmed_error (test_preflight.PreflightTests.test_unconfirmed_error) ..
 test_unprepared_values (test_preflight.PreflightTests.test_unprepared_values) ... ok
 test_zero_atr (test_preflight.PreflightTests.test_zero_atr) ... ok
 test_zero_prior_volume (test_preflight.PreflightTests.test_zero_prior_volume) ... ok
+test_config_invalid_types_and_nonfinite (test_trace_safety.DirectValidationTests.test_config_invalid_types_and_nonfinite) ... ok
+test_step_rejects_invalid_ohlc (test_trace_safety.DirectValidationTests.test_step_rejects_invalid_ohlc) ... ok
+test_tick_precision (test_trace_safety.DirectValidationTests.test_tick_precision) ... ok
+test_broken_output_symlink_refused (test_trace_safety.TraceSafetyTests.test_broken_output_symlink_refused) ... ok
+test_config_cannot_be_forced (test_trace_safety.TraceSafetyTests.test_config_cannot_be_forced) ... ok
+test_config_hardlink_refused (test_trace_safety.TraceSafetyTests.test_config_hardlink_refused) ... ok
+test_existing_output_not_clobbered (test_trace_safety.TraceSafetyTests.test_existing_output_not_clobbered) ... ok
+test_explicit_force_replaces_existing_output (test_trace_safety.TraceSafetyTests.test_explicit_force_replaces_existing_output) ... ok
+test_force_requires_output (test_trace_safety.TraceSafetyTests.test_force_requires_output) ... ok
+test_input_cannot_be_forced (test_trace_safety.TraceSafetyTests.test_input_cannot_be_forced) ... ok
+test_input_hardlink_refused (test_trace_safety.TraceSafetyTests.test_input_hardlink_refused) ... ok
+test_invalid_trace_does_not_overwrite_existing (test_trace_safety.TraceSafetyTests.test_invalid_trace_does_not_overwrite_existing) ... ok
+test_invalid_utf8_reported (test_trace_safety.TraceSafetyTests.test_invalid_utf8_reported) ... ok
+test_new_output_created (test_trace_safety.TraceSafetyTests.test_new_output_created) ... ok
+test_no_temporary_files_remain (test_trace_safety.TraceSafetyTests.test_no_temporary_files_remain) ... ok
+test_optimized_python_still_rejects_bad_config (test_trace_safety.TraceSafetyTests.test_optimized_python_still_rejects_bad_config) ... ok
+test_output_directory_rejected (test_trace_safety.TraceSafetyTests.test_output_directory_rejected) ... ok
+test_output_symlink_refused (test_trace_safety.TraceSafetyTests.test_output_symlink_refused) ... ok
+test_too_fine_tick_rejected (test_trace_safety.TraceSafetyTests.test_too_fine_tick_rejected) ... ok
+test_unterminated_quote_reported (test_trace_safety.TraceSafetyTests.test_unterminated_quote_reported) ... ok
 
 ----------------------------------------------------------------------
-Ran 137 tests in 1.366s
+Ran 162 tests in 2.270s
 
 OK
