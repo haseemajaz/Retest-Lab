@@ -24,6 +24,10 @@ Before generating a trace, run `python -m reference.preflight your_bars.csv --co
 
 Preflight exit codes are 0 for valid inputs (including warnings), 1 only when `--strict` is used and warnings exist, and 2 for invalid inputs or unreadable files. For example, `python -m reference.preflight sample_trace.csv --strict` reports expected synthetic gaps and exits 1. Review each warning in context rather than inventing data to clear it; blank prior values can be intentional during warm-up or when detection is deliberately not evaluated.
 
+Adjacent offset-aware timestamps are also checked for repeated instants or backwards ordering. Offsets are compared as instants, and a blank or naive timestamp breaks the comparison chain. This is only a warning; it does not verify expected cadence, session or timestamp-to-bar mapping. The trace accepts timestamp order as supplied.
+
+CSV rows must include the same number of fields as their header (use explicit empty cells for blanks); duplicate JSON config keys are rejected.
+
 This is not an independent test of the Python engine. It cannot verify source/feed, data accuracy, actual session membership, timezone mapping, enough warm-up, Pine parity, alerts, execution or profitability. A clean result does not prove any of these.
 
 ## Compare observations
