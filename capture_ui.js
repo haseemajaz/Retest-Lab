@@ -1,0 +1,32 @@
+'use strict';
+(() => {
+ const C=window.RetestCapture, list=document.getElementById('rows'), status=document.getElementById('status'), backupStatus=document.getElementById('backup-status'), empty=document.getElementById('empty'), count=document.getElementById('count'), fileInput=document.getElementById('backup-file');
+ let rows=[], next=0, readToken=0, revision=0;
+ const el=(tag,text,cls)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;if(cls)x.className=cls;return x};
+ function updateCount(){count.textContent=rows.length+' / '+C.MAX_ROWS+' planned';empty.hidden=rows.length>0;document.getElementById('add').disabled=rows.length>=C.MAX_ROWS;}
+ function refreshLabels(){list.querySelectorAll('.row').forEach((row,i)=>{row.querySelector('h3').textContent='Cell '+(i+1);row.querySelector('button').setAttribute('aria-label','Remove planned cell '+(i+1));});updateCount();}
+ function clearStatus(target){target.textContent='';target.classList.remove('error');}
+ function makeRow(item){
+  const box=el('div',undefined,'row'), head=el('div',undefined,'row-head'), title=el('h3','Cell'), remove=el('button','Remove');remove.type='button';remove.addEventListener('click',()=>{revision++;clearStatus(backupStatus);rows=rows.filter(r=>r!==item);box.remove();refreshLabels();status.textContent='Cell removed.';});head.append(title,remove);box.append(head);
+  const fields=el('div',undefined,'fields'), il=el('label','Bar index'), input=el('input');input.type='text';input.inputMode='numeric';input.maxLength=C.MAX_INDEX;input.value=item.index;input.placeholder='e.g. 20';input.autocomplete='off';input.addEventListener('input',()=>item.index=input.value);il.append(input);
+  const fl=el('label','Field'), select=el('select');C.FIELDS.forEach(f=>{const option=el('option',f);option.value=f;select.append(option)});select.value=item.field;select.addEventListener('change',()=>item.field=select.value);fl.append(select);fields.append(il,fl);box.append(fields);
+  const cl=el('label',undefined,'check'), check=el('input');check.type='checkbox';check.checked=item.recorded;const ct=el('span','Recorded (including a deliberately blank value)');cl.append(check,ct);box.append(cl);
+  const vl=el('label','Observed value'), value=el('textarea');value.maxLength=C.MAX_VALUE;value.value=item.value;value.disabled=!item.recorded;value.placeholder='Enter exactly what was observed; leave blank only if the observed value was blank.';value.addEventListener('input',()=>item.value=value.value);check.addEventListener('change',()=>{item.recorded=check.checked;value.disabled=!item.recorded;});vl.append(value);box.append(vl);return box;
+ }
+ function add(){if(rows.length>=C.MAX_ROWS)return;clearStatus(status);clearStatus(backupStatus);const item={id:++next,index:'',field:C.FIELDS[0],recorded:false,value:''}, box=makeRow(item);revision++;rows.push(item);list.append(box);refreshLabels();box.querySelector('input[type=text]').focus();}
+ function saveFile(content,name,mime){const blob=new Blob([content],{type:mime}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ function download(kind){try{const result=C.csv(rows);saveFile(kind==='required'?result.required:result.observations,kind==='required'?'retest_checklist.csv':'retest_observations.csv','text/csv;charset=utf-8');clearStatus(status);status.textContent=(kind==='required'?'Checklist':'Observations')+' download started. Keep the files private.';}catch(e){status.classList.add('error');status.textContent=e.message;}}
+ document.getElementById('save-backup').addEventListener('click',()=>{try{const data=C.backup(rows);saveFile(data,'retest_capture_backup.json','application/json;charset=utf-8');clearStatus(backupStatus);backupStatus.textContent='Backup download started. Store it privately.';}catch(e){backupStatus.classList.add('error');backupStatus.textContent=e.message;}});
+ fileInput.addEventListener('change',async()=>{const file=fileInput.files[0];fileInput.value='';const token=++readToken, startRevision=revision;if(!file)return;try{
+  if(file.size>C.MAX_BACKUP_BYTES)throw Error('Backup exceeds 4 MiB.');
+  const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(token!==readToken)return;if(startRevision!==revision){backupStatus.classList.add('error');backupStatus.textContent='Worksheet changed while backup was read; restore cancelled.';return;}
+  const incoming=C.restore(text), newRows=incoming.map(item=>({...item,id:++next})), fragment=document.createDocumentFragment();newRows.forEach(item=>fragment.append(makeRow(item)));
+  if(rows.length&&!confirm('Replace the current worksheet with '+newRows.length+' saved cell(s)? This cannot be undone.')){clearStatus(backupStatus);backupStatus.textContent='Restore cancelled; current worksheet unchanged.';return;}
+  revision++;rows=newRows;list.replaceChildren(fragment);refreshLabels();clearStatus(status);clearStatus(backupStatus);backupStatus.textContent='Restored '+rows.length+' cell(s). Review them before export.';
+ }catch(e){if(token!==readToken)return;backupStatus.classList.add('error');backupStatus.textContent='Restore failed: '+(e instanceof TypeError?'invalid UTF-8.':e.message)+' Current worksheet unchanged.';}});
+ window.addEventListener('beforeunload', event=>{if(rows.length){event.preventDefault();event.returnValue='';}});
+ list.addEventListener('input',()=>{revision++;clearStatus(status);clearStatus(backupStatus);});list.addEventListener('change',()=>{revision++;clearStatus(status);clearStatus(backupStatus);});
+ document.getElementById('add').addEventListener('click',add);document.getElementById('clear').addEventListener('click',()=>{if(rows.length&&confirm('Clear all planned cells and observations? This cannot be undone.')){revision++;clearStatus(backupStatus);rows=[];list.replaceChildren();refreshLabels();status.textContent='Worksheet cleared.';}});
+ document.getElementById('export-bundle').addEventListener('click',()=>{try{const data=C.bundle(rows);saveFile(data,'retest_evidence_bundle.json','application/json;charset=utf-8');clearStatus(status);status.textContent='Evidence bundle download started. Store it privately.';}catch(e){status.classList.add('error');status.textContent=e.message;}});
+ document.getElementById('export-plan').addEventListener('click',()=>download('required'));document.getElementById('export-obs').addEventListener('click',()=>download('observations'));updateCount();
+})();

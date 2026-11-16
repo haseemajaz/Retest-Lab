@@ -30,9 +30,9 @@ class IntegrityTests(unittest.TestCase):
     def test_ascending_different_offsets_no_warning(self):
         self.rows(row(0,'2026-01-01T10:00:00Z'),row(1,'2026-01-01T11:01:00+01:00'));self.assertEqual(self.warnings(),[])
     def test_naive_breaks_comparison_chain(self):
-        self.rows(row(0,'2026-01-01T10:00:00Z'),row(1,'2026-01-01T09:00:00'),row(2,'2026-01-01T08:00:00Z'));w=self.warnings();self.assertTrue(any('no timezone offset' in x for x in w));self.assertFalse(any('go backwards' in x for x in w))
+        self.rows(row(0,'2026-01-01T10:00:00Z'),row(1,'2026-01-01T09:00:00'),row(2,'2026-01-01T08:00:00Z'));w=self.warnings();self.assertTrue(any('no timezone offset' in x for x in w));self.assertFalse(any('adjacent offset-aware timestamps go backwards' in x for x in w));self.assertTrue(any('go backwards across' in x for x in w))
     def test_blank_breaks_comparison_chain(self):
-        self.rows(row(0,'2026-01-01T10:00:00Z'),row(1,''),row(2,'2026-01-01T08:00:00Z'));self.assertFalse(any('go backwards' in x for x in self.warnings()))
+        self.rows(row(0,'2026-01-01T10:00:00Z'),row(1,''),row(2,'2026-01-01T08:00:00Z'));self.assertFalse(any('adjacent offset-aware timestamps go backwards' in x for x in self.warnings()));self.assertTrue(any('go backwards across' in x for x in self.warnings()))
     def test_strict_timestamp_warning_status(self):
         self.rows(row(0,'2026-01-01T10:00:00Z'),row(1,'2026-01-01T10:00:00Z'));p=subprocess.run([sys.executable,'-m','reference.preflight',str(self.bars),'--strict'],capture_output=True,text=True);self.assertEqual(p.returncode,1);self.assertIn('repeat',p.stdout)
 if __name__=='__main__':unittest.main()

@@ -45,7 +45,7 @@ The following were evaluated against the Python reference using default settings
 
 ## Candidate future improvements — not implemented
 1. **First:** complete compilation, alert checks and recorded replay cases above; repair any differences before adding decision logic.
-2. **Better diagnostics:** a compact on-chart explanation of which enabled filter rejected a breakout, subject to Pine execution and display limits.
+2. **Better diagnostics:** a compact on-chart explanation of which enabled filter rejected a breakout, subject to Pine execution and display limits. Partially done in v0.23.0 in Python only: the trace adds `reject_reason` for bars that started idle and did not arm (first failing check, geometry then filters; v0.24.0 narrowed this from v0.23.0, which recorded it regardless of state) and `REJECT_GUIDE.html` explains it. The on-chart Pine dashboard explanation is still not implemented.
 3. **Session visibility:** optional display of configured session windows and reset boundaries, with clear timezone labels.
 4. **Comparison support:** additional independently checked edge-case fixtures. The guided capture format and selected-cell comparison are available, but Python traces and synthetic examples are not independent validation.
 

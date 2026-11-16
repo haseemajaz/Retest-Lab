@@ -1,0 +1,1 @@
+{"schema": "retest_lab.v3", "symbol": "NASDAQ:AAPL", "timeframe": "5", "bar_close_ms": 1766452800000, "direction": 1, "events": ["armed_long"], "cancel_reason": null, "entry": 100.0, "stop": 98.8, "t1": 100.72, "t2": 101.2, "t3": 101.8, "t4": 102.4}

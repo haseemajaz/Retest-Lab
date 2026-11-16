@@ -1,0 +1,28 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),r=require('../rounding_inspector.js');
+test('just below positive half demonstrates a difference',()=>{const x=r.compare('0.0049999999995','0.01');assert.equal(x.exactTicks,'0');assert.equal(x.modelTicks,'1');assert.equal(x.different,true)});
+test('exact positive half ties upward',()=>{const x=r.compare('0.005','0.01');assert.equal(x.exactTicks,'1');assert.equal(x.modelTicks,'1')});
+test('negative half ties toward higher price',()=>{const x=r.compare('-0.005','0.01');assert.equal(x.exactTicks,'0');assert.equal(x.modelTicks,'0')});
+test('negative below half rounds away from zero',()=>{let x=r.compare('-0.0051','0.01');assert.equal(x.exactTicks,'-1');assert.equal(x.exactPrice,'-0.01')});
+test('negative just beyond half can differ',()=>{let x=r.compare('-0.0050000000005','0.01');assert.equal(x.exactTicks,'-1');assert.equal(x.modelTicks,'0')});
+test('zero price is accepted',()=>assert.equal(r.compare('0','0.01').exactPrice,'0'));
+test('returns exact rounded price',()=>assert.equal(r.compare('123.47','0.05').exactPrice,'123.45'));
+test('ordinary aligned input agrees',()=>assert.equal(r.compare('100','0.01').different,false));
+test('rejects zero tick',()=>assert.throws(()=>r.compare('1','0'),/greater than zero/));
+test('rejects negative tick',()=>assert.throws(()=>r.compare('1','-1'),/greater than zero/));
+test('rejects scientific notation',()=>assert.throws(()=>r.compare('1e3','1'),/no exponent/));
+test('rejects blank',()=>assert.throws(()=>r.compare('','0.1'),/decimal places/));
+test('rejects plus sign',()=>assert.throws(()=>r.compare('+1','0.1'),/decimal places/));
+test('rejects missing leading zero',()=>assert.throws(()=>r.compare('.5','1'),/decimal places/));
+test('rejects excessive price precision',()=>assert.throws(()=>r.compare('0.12345678901234567','1'),/16 decimal/));
+test('rejects excessive tick precision',()=>assert.throws(()=>r.compare('1','0.00000000001'),/10 decimal/));
+test('accepts 16 price decimals',()=>assert.doesNotThrow(()=>r.compare('0.1234567890123456','0.01')));
+test('accepts 10 tick decimals',()=>assert.doesNotThrow(()=>r.compare('0.01','0.0000000001')));
+test('rejects excessive integer digits',()=>assert.throws(()=>r.compare('1000000000000','1'),/12 whole/));
+test('accepts ratio at limit',()=>assert.doesNotThrow(()=>r.compare('109951162777.6','0.1')));
+test('rejects ratio beyond limit',()=>assert.throws(()=>r.compare('109951162777.7','0.1'),/2\^40/));
+test('accepts negative ratio at limit',()=>assert.doesNotThrow(()=>r.compare('-109951162777.6','0.1')));
+test('rejects negative ratio beyond limit',()=>assert.throws(()=>r.compare('-109951162777.7','0.1'),/2\^40/));
+test('uses strings only',()=>assert.throws(()=>r.compare(1,'1'),/decimal/));
+test('whitespace is trimmed',()=>assert.equal(r.compare(' 1 ',' 0.1 ').exactTicks,'10'));
+
+test('rejects excessive input without truncating it',()=>assert.throws(()=>r.compare('1'.repeat(100000),'1'),/too long/));

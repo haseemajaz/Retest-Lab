@@ -10,7 +10,7 @@ from decimal import Decimal, InvalidOperation
 import sys
 
 FIELDS = ('timestamp', 'day', 'state_before', 'state', 'events', 'cancel_reason',
-          'direction', 'entry', 'stop', 't1', 't2', 't3', 't4', 'fills_today', 'targets_hit')
+          'direction', 'entry', 'stop', 't1', 't2', 't3', 't4', 'fills_today', 'targets_hit', 'order_ambiguity', 'reject_reason')
 NUMERIC = {'direction', 'entry', 'stop', 't1', 't2', 't3', 't4', 'fills_today'}
 
 

@@ -73,39 +73,137 @@ class Setup:
     stop: float
     targets: tuple
 
+def _finite_intermediate(value, label):
+    # Inputs can be finite while subtraction, multiplication or division
+    # overflows. Refuse to make model decisions with infinity or NaN.
+    if not isfinite(value):
+        raise ValueError(f'non-finite model arithmetic: {label}')
+    return value
+
+
 def rounded(x, tick):
     # Nearest tick, ties toward positive infinity, matching intended Pine rule.
-    return round(floor(x / tick + .5 + 1e-10) * tick, 10)
+    units = _finite_intermediate(x / tick, 'price / tick')
+    try:
+        result = floor(_finite_intermediate(units + .5 + 1e-10, 'rounding units')) * tick
+    except OverflowError as exc:
+        raise ValueError('non-finite model arithmetic: rounded price') from exc
+    return round(_finite_intermediate(result, 'rounded price'), 10)
+
+
+REJECT_REASONS = (
+    'warmup', 'invalid_bar', 'zero_atr', 'no_breakout', 'direction_disabled',
+    'min_break', 'close_direction', 'weak_body', 'close_edge', 'ema', 'vwap',
+    'volume', 'risk_out_of_range', 'targets_collapsed',
+)
+
+
+def diagnose(bar, prior_high, prior_low, prior_atr, cfg, ema=None, volume=None, prior_volume_avg=None, vwap=None):
+    """Return (setup_or_None, reason_or_None) for one prepared bar.
+
+    The reason names the first failing check in a documented order, not
+    necessarily the only failing check: invalid bar / zero ATR, no
+    breakout, direction disabled, minimum breakout distance, close
+    direction, weak body, close edge, EMA, VWAP, volume, risk range,
+    then collapsed targets. Filters are checked after the price
+    geometry, so a bar that never breaks out reports ``no_breakout``
+    even if a filter would also have failed. This mirrors the Pine
+    conditions; it does not change them. A setup returns reason None.
+    """
+    if not bar.confirmed or bar.high <= bar.low:
+        return None, 'invalid_bar'
+    if prior_atr <= 0:
+        return None, 'zero_atr'
+    span = _finite_intermediate(bar.high - bar.low, 'bar range')
+    body = abs(_finite_intermediate(bar.close - bar.open, 'body size'))
+    # Which direction, if any, broke out?
+    long_break = bar.close > prior_high
+    short_break = bar.close < prior_low
+    if not long_break and not short_break:
+        return None, 'no_breakout'
+    d = 1 if long_break else -1
+    if d == 1 and not cfg.longs:
+        return None, 'direction_disabled'
+    if d == -1 and not cfg.shorts:
+        return None, 'direction_disabled'
+    boundary = prior_high if d == 1 else prior_low
+    distance = _finite_intermediate(bar.close - boundary if d == 1 else boundary - bar.close, 'long breakout distance' if d == 1 else 'short breakout distance')
+    if distance < _finite_intermediate(cfg.min_break_atr * prior_atr, 'breakout threshold'):
+        return None, 'min_break'
+    if (d == 1 and bar.close <= bar.open) or (d == -1 and bar.close >= bar.open):
+        return None, 'close_direction'
+    if body < _finite_intermediate(cfg.body_mult * prior_atr, 'body threshold'):
+        return None, 'weak_body'
+    wick = _finite_intermediate(bar.high - bar.close if d == 1 else bar.close - bar.low, 'edge wick')
+    if _finite_intermediate(wick / span, 'edge wick ratio') > cfg.edge:
+        return None, 'close_edge'
+    if cfg.use_ema and (ema is None or (bar.close > ema if d == 1 else bar.close < ema) is False):
+        return None, 'ema'
+    if cfg.use_vwap and (vwap is None or (bar.close > vwap if d == 1 else bar.close < vwap) is False):
+        return None, 'vwap'
+    if cfg.use_volume and (volume is None or prior_volume_avg is None or prior_volume_avg <= 0
+                           or volume < _finite_intermediate(cfg.vol_mult * prior_volume_avg, 'volume threshold')):
+        return None, 'volume'
+    e = rounded(boundary, cfg.tick)
+    buffer = _finite_intermediate(cfg.stop_buffer * prior_atr, 'stop buffer')
+    stop_raw = _finite_intermediate(bar.low - buffer if d == 1 else bar.high + buffer, 'stop price')
+    s = rounded(stop_raw, cfg.tick)
+    risk = d * _finite_intermediate(e - s, 'risk distance')
+    if not (_finite_intermediate(cfg.min_risk * prior_atr, 'minimum risk') <= risk
+            <= _finite_intermediate(cfg.max_risk * prior_atr, 'maximum risk')
+            and risk >= cfg.tick):
+        return None, 'risk_out_of_range'
+    targets = tuple(rounded(_finite_intermediate(e + d * _finite_intermediate(risk * r, 'target distance'), 'target price'), cfg.tick) for r in cfg.targets)
+    sequence = (e,) + targets
+    if not all(d * _finite_intermediate(b - a, 'target spacing') > 0 for a, b in zip(sequence, sequence[1:])):
+        return None, 'targets_collapsed'
+    return Setup(d, e, s, targets), None
+
 
 def detect(bar, prior_high, prior_low, prior_atr, cfg, ema=None, volume=None, prior_volume_avg=None, vwap=None):
     """Caller must supply fully warmed-up PREVIOUS-bar ATR and prior range."""
-    if not bar.confirmed or prior_atr <= 0 or bar.high <= bar.low:
-        return None
-    if cfg.use_volume and (volume is None or prior_volume_avg is None or prior_volume_avg <= 0 or volume < cfg.vol_mult * prior_volume_avg):
-        return None
-    span = bar.high - bar.low
-    body = abs(bar.close - bar.open)
-    bull = (cfg.longs and (not cfg.use_vwap or (vwap is not None and bar.close > vwap)) and (not cfg.use_ema or (ema is not None and bar.close > ema)) and bar.close > prior_high and bar.close - prior_high >= cfg.min_break_atr * prior_atr and bar.close > bar.open
-            and body >= cfg.body_mult * prior_atr
-            and (bar.high - bar.close) / span <= cfg.edge)
-    bear = (cfg.shorts and (not cfg.use_vwap or (vwap is not None and bar.close < vwap)) and (not cfg.use_ema or (ema is not None and bar.close < ema)) and bar.close < prior_low and prior_low - bar.close >= cfg.min_break_atr * prior_atr and bar.close < bar.open
-            and body >= cfg.body_mult * prior_atr
-            and (bar.close - bar.low) / span <= cfg.edge)
-    if not (bull or bear):
-        return None
-    d = 1 if bull else -1
-    e = rounded(prior_high if bull else prior_low, cfg.tick)
-    s = rounded(bar.low - cfg.stop_buffer * prior_atr if bull else
-                bar.high + cfg.stop_buffer * prior_atr, cfg.tick)
-    risk = d * (e - s)
-    if not (cfg.min_risk * prior_atr <= risk <= cfg.max_risk * prior_atr
-            and risk >= cfg.tick):
-        return None
-    targets = tuple(rounded(e + d * risk * r, cfg.tick) for r in cfg.targets)
-    sequence = (e,) + targets
-    if not all(d * (b - a) > 0 for a, b in zip(sequence, sequence[1:])):
-        return None
-    return Setup(d, e, s, targets)
+    setup, _reason = diagnose(bar, prior_high, prior_low, prior_atr, cfg, ema=ema, volume=volume, prior_volume_avg=prior_volume_avg, vwap=vwap)
+    return setup
+
+def order_ambiguities(direction, entry, stop, targets, hit, low, high, *, was_armed, was_active, filled_this_bar):
+    """Labels for one bar where OHLC spans several relevant levels.
+
+    A single OHLC bar records a range, not the order prices were visited
+    inside it. When that range touches two levels whose order decides the
+    modelled outcome, the trace's outcome is a modelling convention, not
+    an observed sequence. Labels are advisory only:
+    - fill_vs_stop: entry and stop were both spanned while armed. The
+      model cancels the pending setup (stop first) and records no fill.
+    - fill_vs_target: a target was spanned on the fill bar. The model
+      deliberately records no target on a fill bar.
+    - stop_vs_target: stop and at least one unhit target were both
+      spanned on an active bar. The model treats stop first.
+    - target_order: two or more unhit targets were spanned on one active
+      bar, so their intrabar order is unknown. The model records them
+      together on that bar.
+    `hit` is the set of targets already recorded before this bar.
+    """
+    labels = []
+    if direction not in (1, -1) or targets is None:
+        return labels
+    entry_spanned = low <= entry <= high
+    stop_touched = (low <= stop) if direction == 1 else (high >= stop)
+    touched = [i for i, target in enumerate(targets, 1)
+               if i not in hit and ((high >= target) if direction == 1 else (low <= target))]
+    if was_armed and entry_spanned and stop_touched:
+        labels.append('fill_vs_stop')
+    if filled_this_bar:
+        if stop_touched and 'fill_vs_stop' not in labels:
+            labels.append('fill_vs_stop')
+        if touched:
+            labels.append('fill_vs_target')
+    elif was_active:
+        if stop_touched and touched:
+            labels.append('stop_vs_target')
+        if len(touched) >= 2:
+            labels.append('target_order')
+    return labels
+
 
 @dataclass
 class Engine:
@@ -118,10 +216,16 @@ class Engine:
     fills_today: int = 0
     hit: set = field(default_factory=set)
     last_cancel_reason: str | None = None
+    last_ambiguities: list = field(default_factory=list)
 
     def step(self, b: Bar, candidate: Setup | None = None):
         if not b.confirmed:
+            self.last_ambiguities = []
             return []
+        was_armed = self.state == 'armed'
+        was_active = self.state == 'active'
+        setup_before = self.setup
+        hit_before = set(self.hit)
         if not b.low <= min(b.open, b.close) <= max(b.open, b.close) <= b.high:
             raise ValueError('invalid OHLC')
         events = []
@@ -157,6 +261,24 @@ class Engine:
                         events.append(f'target_{i}')
                 if 4 in self.hit:
                     self.state, self.last_end = 'idle', b.index
+        # Intrabar order is not observable from OHLC. Flag bars where the
+        # range spans levels whose order decides the modelled outcome, so a
+        # trace row is not read as an observed sequence. Day/session/expiry
+        # cancellations take precedence over price, so they are not flagged
+        # as price-order cases. The re-arm below uses a new setup, if any,
+        # and must not inherit this bar's ambiguity.
+        self.last_ambiguities = []
+        if setup_before is not None and (was_armed or was_active):
+            expired = was_armed and self.armed_bar is not None and b.index - self.armed_bar > self.cfg.expiry
+            price_relevant = True
+            if was_armed:
+                price_relevant = not (new_day or not b.in_session or expired)
+            if price_relevant:
+                self.last_ambiguities = order_ambiguities(
+                    setup_before.direction, setup_before.entry, setup_before.stop,
+                    setup_before.targets, hit_before, b.low, b.high,
+                    was_armed=was_armed, was_active=was_active,
+                    filled_this_bar=filled_this_bar)
         cooled = self.last_end is None or b.index - self.last_end > self.cfg.cooldown
         if idle_at_start and self.state == 'idle' and b.in_session and self.fills_today < self.cfg.cap and cooled and candidate:
             self.state, self.setup, self.armed_bar = 'armed', candidate, b.index
@@ -256,11 +378,23 @@ def trace_rows(rows, cfg=None):
         if numbers['prior_volume_avg'] is not None and numbers['prior_volume_avg'] < 0: raise ValueError(f'row {i}: prior volume average cannot be negative')
         if not _boolean(row.get('confirmed'), 'confirmed', i): raise ValueError(f'row {i}: trace accepts confirmed bars only')
         bar = Bar(index, raw_day, o,h,l,c, _boolean(row.get('in_session'),'in_session',i))
-        candidate = None if prepared[0] is None else detect(bar, *prepared, engine.cfg, ema=numbers['ema'], volume=numbers['volume'], prior_volume_avg=numbers['prior_volume_avg'], vwap=numbers['vwap'])
+        try:
+            if prepared[0] is None:
+                candidate, reject_reason = None, 'warmup'
+            else:
+                candidate, reject_reason = diagnose(bar, *prepared, engine.cfg, ema=numbers['ema'], volume=numbers['volume'], prior_volume_avg=numbers['prior_volume_avg'], vwap=numbers['vwap'])
+        except (ValueError, OverflowError) as exc:
+            raise ValueError(f'row {i}: {exc}') from exc
         before = engine.state
         events = engine.step(bar, candidate)
         setup = engine.setup if before != 'idle' or engine.state != 'idle' else None
-        output.append({'index':index,'timestamp':timestamp,'day':raw_day,'state_before':before,'state':engine.state,'events':'|'.join(events),'cancel_reason':engine.last_cancel_reason if 'cancelled' in events else '', 'direction':setup.direction if setup else '', 'entry':setup.entry if setup else '', 'stop':setup.stop if setup else '', **{f't{j}': setup.targets[j-1] if setup else '' for j in range(1,5)}, 'fills_today':engine.fills_today,'targets_hit':'|'.join(map(str,sorted(engine.hit))) if setup else ''})
+        # A rejection reason is recorded only on a bar that started idle:
+        # arming is only attempted from idle, so on an armed or active bar
+        # no new setup was considered. In v0.23 the candidate diagnosis
+        # was recorded regardless of state, so a bar could show both
+        # modeled_fill and reject_reason warmup; that read as if the bar
+        # itself had been rejected while it filled or hit targets.
+        output.append({'index':index,'timestamp':timestamp,'day':raw_day,'state_before':before,'state':engine.state,'events':'|'.join(events),'cancel_reason':engine.last_cancel_reason if 'cancelled' in events else '', 'direction':setup.direction if setup else '', 'entry':setup.entry if setup else '', 'stop':setup.stop if setup else '', **{f't{j}': setup.targets[j-1] if setup else '' for j in range(1,5)}, 'fills_today':engine.fills_today,'targets_hit':'|'.join(map(str,sorted(engine.hit))) if setup else '', 'order_ambiguity':'|'.join(engine.last_ambiguities), 'reject_reason': reject_reason if (candidate is None and before == 'idle') else ''})
         previous_index, previous_day = index, day
     return output
 

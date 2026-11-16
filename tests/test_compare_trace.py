@@ -106,6 +106,6 @@ class ChecklistTests(unittest.TestCase):
         fields=[f for f in FIELDS if f!='entry']; rows=[]
         for i in range(20,23):
             row=dict.fromkeys(('index', *FIELDS),''); row['index']=str(i); row['entry']='100'; rows.append(row)
-        self.write(self.trace,('index',*FIELDS),rows); self.checklist([(str(i),f) for i in range(20,23) for f in fields]); r=self.run_check(); self.assertEqual(r.returncode,1); self.assertIn('... and 12 more missing cell(s)',r.stdout)
+        self.write(self.trace,('index',*FIELDS),rows); self.checklist([(str(i),f) for i in range(20,23) for f in fields]); r=self.run_check(); self.assertEqual(r.returncode,1); self.assertIn('... and 18 more missing cell(s)',r.stdout)
 
 if __name__ == '__main__': unittest.main()
