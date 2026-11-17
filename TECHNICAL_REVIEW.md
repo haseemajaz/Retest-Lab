@@ -1,6 +1,15 @@
-# Technical review — Retest Lab v0.24.0
+# Technical review — Retest Lab v0.25.0
 
 Initial review: 2026-11-13; updated 2026-11-17. Scope: source inspection of the Pine prototype, Python reference and trace tools, standalone calculator and its local comparison file, package structure and user-facing interface; synthetic automated tests and local browser checks. This is not a security certification, live market study, TradingView parity test or proof of profitability.
+
+## v0.25.0 focused review: per-setup outcomes and to-scale visuals
+
+- **Gap:** a trace was a flat list of bars, so answering "what happened to each setup" meant scanning every row by hand. The new `reference/ledger.py` groups trace rows into setups: a setup starts on an `armed_long`/`armed_short` bar and ends on the first later bar that stops, reaches target 4, or is cancelled, or stays open at the end of the trace. The engine guarantees the grouping is unambiguous — a new setup can only arm on a bar that started idle, so a setup can never arm on the same bar another one ends. Outcomes are `all_targets`, `stop`, `cancelled` (with the engine's cancel reason), or `open`; a setup that never fills is still listed. `summarize()` counts setups, fills, outcomes and ambiguous bars, and never computes a win rate.
+- **Audit report:** the timeline is followed by a "Setup outcomes" section (04b) with the same per-setup table and counts, built from the same ledger code. `DEMO_AUDIT.html` was regenerated from the current report code with its synthetic-demonstration banner kept.
+- **Calculator:** the ladder is no longer "ordered, not to scale". `ladder.js` gains `geometry()`, which maps each level to a 0–100 vertical position by actual price distance (0 at the highest price, 100 at the lowest, one decimal), and `calculator.html` renders it as an SVG chart beside the level table, with the same colors as the table rows. The range is always the levels themselves, so even a one-tick setup spreads across the full chart. The table is unchanged; the "not to scale" copy is updated.
+- **Viewer:** the rejection breakdown now draws a bar per reason, sized by its share of rejected bars through the new pure `barWidth()` helper (whole percent, clamped 0–100, non-finite shares draw nothing). `TRACE_VIEWER.html` embeds the same tested module, and the integrity test still enforces the embedded copy matches `trace_viewer.js`.
+- **Bug found by existing tests:** the ledger's index parser treated index `0` as missing (`0 or ''` is `''` in Python), so audit reports on traces starting at bar 0 failed. Fixed by distinguishing a missing value from a legitimate zero, and covered by a regression test. The same falsy-zero pattern was fixed for entry/stop/target values.
+- **Validation:** new tests cover the ledger (all-targets, stop after a partial target, cancelled, open, integer index 0, missing columns, no-clobber), the audit setup-outcomes section, the to-scale geometry (long, short, one-tick), and the viewer bar widths. These are synthetic; they do not establish Pine parity, execution or profitability.
 
 ## v0.24.0 focused review: rejection reasons, scoped to idle bars and shown in the tools
 

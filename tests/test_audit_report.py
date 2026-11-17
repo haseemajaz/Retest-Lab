@@ -113,6 +113,23 @@ class AuditTests(unittest.TestCase):
  def test_overlong_details_are_bounded(self):
   r={'bars':[{'index':i,'timestamp':'','state_before':'idle','state':'idle','events':'test','cancel_reason':''} for i in range(30)],'warnings':[],'comparison':(60,[(i,'events','a','b') for i in range(60)],set(range(60)),set()),'checklist':set(),'missing':[],'config':{},'sources':{},'check_tick':False,'strict':False}
   report=a.render_report(r);self.assertIn('First 25 of 30 event-bearing bars',report);self.assertIn('Details limited to the first 50 differences',report);self.assertNotIn('Bar 50 ·',report)
+ def test_setup_outcomes_section(self):
+  p=self.run_cli(); self.assertEqual(p.returncode,0,p.stderr); s=self.html()
+  self.assertIn('Setup outcomes', s)
+  self.assertIn('<th scope="col">Outcome</th>', s)
+  self.assertIn('<b>1</b><span>setups', s)
+  self.assertIn('1 reached all targets, 0 stopped, 0 cancelled, 0 still open', s)
+  self.assertIn('all_targets', s)
+
+ def test_setup_outcomes_three_setups(self):
+  import shutil
+  shutil.copy(ROOT/'sample_ledger.csv', self.bars)
+  p=self.run_cli(); self.assertEqual(p.returncode,0,p.stderr); s=self.html()
+  self.assertIn('<b>3</b><span>setups', s)
+  self.assertIn('1 reached all targets, 1 stopped, 1 cancelled, 0 still open', s)
+  self.assertIn('cancelled / expired', s)
+  self.assertIn('<b>2</b><span>modeled fills', s)
+
  def test_complete_preflight_no_warning(self):
   data=self.bars.read_text().splitlines();headers=data[0]+',in_session,confirmed';rows=[line+',true,true' for line in data[1:2]];self.bars.write_text(headers+'\n'+'\n'.join(rows)+'\n');self.assertEqual(self.run_cli('--strict').returncode,0);self.assertIn('No preflight warnings reported',self.html())
 if __name__=='__main__':unittest.main()

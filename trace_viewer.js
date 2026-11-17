@@ -41,5 +41,11 @@
   if(mode==='ambiguous')return rows.filter(r=>(r.order_ambiguity||'').trim());
   return rows.slice();
  }
- const api={parse,summarize,rejectBreakdown,filterRows,COLUMNS,MAX_BYTES,MAX_ROWS};if(typeof module!=='undefined'&&module.exports)module.exports=api;if(root)root.RetestTraceViewer=api;
+ /* Bar width for a breakdown share, in whole percent, clamped to 0–100.
+    Non-finite shares draw no bar. */
+ function barWidth(share){
+  if(typeof share!=='number'||!isFinite(share))return 0;
+  return Math.max(0,Math.min(100,Math.round(share*100)));
+ }
+ const api={parse,summarize,rejectBreakdown,filterRows,barWidth,COLUMNS,MAX_BYTES,MAX_ROWS};if(typeof module!=='undefined'&&module.exports)module.exports=api;if(root)root.RetestTraceViewer=api;
 })(typeof globalThis==='undefined'?this:globalThis);

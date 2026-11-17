@@ -8,3 +8,10 @@ test('does not mutate the result targets',()=>{const r=make(),before=r.targets.s
 test('rejects missing result',()=>assert.throws(()=>rows(null),/valid/));
 test('rejects invalid direction',()=>assert.throws(()=>rows({...make(),direction:'other'}),/valid/));
 test('rejects malformed target count',()=>assert.throws(()=>rows({...make(),targets:['1']}),/valid/));
+const {geometry}=require('../ladder.js');
+test('geometry spaces long levels to scale',()=>assert.deepEqual(geometry(make()).map(x=>x.position),[0,16.7,33.3,46.7,66.7,100]));
+test('geometry spaces short levels to scale',()=>assert.deepEqual(geometry(make('short')).map(x=>x.position),[0,33.3,53.3,66.7,83.3,100]));
+test('geometry positions increase from highest to lowest price',()=>{const g=geometry(make());for(let i=1;i<g.length;i++)assert.ok(g[i].position>g[i-1].position)});
+test('geometry spreads a one-tick setup across the chart',()=>{const r=calculate({direction:'long',entry:'100',stop:'99.99',tick:'0.01',rs:['1','2','3','4']});assert.deepEqual(geometry(r).map(x=>x.position),[0,20,40,60,80,100])});
+test('geometry keeps labels and prices with positions',()=>{const g=geometry(make());assert.deepEqual(g.map(x=>[x.label,x.price]),[['Target 4','102.40'],['Target 3','101.80'],['Target 2','101.20'],['Target 1','100.72'],['Entry','100.00'],['Stop','98.80']])});
+test('geometry rejects invalid result',()=>assert.throws(()=>geometry(null),/valid/));
